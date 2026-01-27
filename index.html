@@ -1,239 +1,198 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Gamepad2, ExternalLink, Trash2, GraduationCap, BookOpen, Trophy } from 'lucide-react';
-
-const App = () => {
-  // State untuk menyimpan daftar game
-  const [games, setGames] = useState([
-    {
-      id: 1,
-      title: "Petualangan Matematika",
-      description: "Belajar perkalian dan pembagian dengan cara yang seru melalui tantangan hutan rimba.",
-      link: "https://wordwall.net",
-      category: "Matematika",
-      color: "bg-blue-500"
-    },
-    {
-      id: 2,
-      title: "Kuis Tata Bahasa",
-      description: "Uji kemampuan menyusun kalimat dan kosakata bahasa Indonesia yang baik dan benar.",
-      link: "https://kahoot.it",
-      category: "Bahasa",
-      color: "bg-purple-500"
-    }
-  ]);
-
-  // State untuk form input
-  const [showForm, setShowForm] = useState(false);
-  const [newGame, setNewGame] = useState({
-    title: '',
-    description: '',
-    link: '',
-    category: 'Umum'
-  });
-
-  const categories = ["Matematika", "Bahasa", "Sains", "Sejarah", "Umum"];
-  const colors = ["bg-blue-500", "bg-purple-500", "bg-green-500", "bg-orange-500", "bg-red-500"];
-
-  const handleAddGame = (e) => {
-    e.preventDefault();
-    if (!newGame.title || !newGame.link) return;
-
-    const gameToAdd = {
-      ...newGame,
-      id: Date.now(),
-      color: colors[Math.floor(Math.random() * colors.length)]
-    };
-
-    setGames([...games, gameToAdd]);
-    setNewGame({ title: '', description: '', link: '', category: 'Umum' });
-    setShowForm(false);
-  };
-
-  const removeGame = (id) => {
-    setGames(games.filter(g => g.id !== id));
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      {/* Header / Hero Section */}
-      <header className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 px-4 shadow-lg">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="flex justify-center mb-4">
-            <div className="bg-white/20 p-4 rounded-full backdrop-blur-md">
-              <GraduationCap size={48} />
-            </div>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Ruang Game Kreatif Guru</h1>
-          <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Selamat datang di portal belajar sambil bermain. Pilih game edukatif di bawah ini untuk memulai petualanganmu!
-          </p>
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portal Game Edukasi Guru</title>
+    <!-- Tailwind CSS untuk desain instan -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons untuk ikon yang cantik -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap");
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        scroll-behavior: smooth;
+      }
+      .game-card:hover {
+        transform: translateY(-8px);
+        box-shadow:
+          0 20px 25px -5px rgb(0 0 0 / 0.1),
+          0 8px 10px -6px rgb(0 0 0 / 0.1);
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <!-- Header / Navigasi -->
+    <nav className="p-6 max-w-7xl mx-auto flex justify-between items-center">
+      <div class="max-w-7xl mx-auto px-6 py-6 flex items-center gap-3">
+        <div class="bg-indigo-600 p-2 rounded-xl text-white">
+          <i data-lucide="book-open-check"></i>
         </div>
-      </header>
+        <span class="text-xl font-bold tracking-tight text-indigo-900"
+          >Kelas Kreatif Ibu/Bapak Guru</span
+        >
+      </div>
+    </nav>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto py-12 px-4">
-        
-        {/* Statistics or Info Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="bg-blue-100 p-3 rounded-xl text-blue-600"><BookOpen /></div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Total Materi</p>
-              <p className="text-2xl font-bold">{games.length} Game</p>
-            </div>
+    <!-- Hero Section -->
+    <header class="max-w-5xl mx-auto text-center py-16 px-6">
+      <div
+        class="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-indigo-600 uppercase bg-indigo-50 rounded-full"
+      >
+        Mari Belajar Sambil Bermain
+      </div>
+      <h1 class="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
+        Selamat Datang di <br />
+        <span
+          class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600"
+          >Portal Game Edukasi Pak Teddy</span
+        >
+      </h1>
+      <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+        Halo semuanya! Pilih salah satu game di bawah ini untuk mengasah
+        kemampuanmu. Tekan tombol main dan selesaikan tantangannya!
+      </p>
+    </header>
+
+    <!-- Kontainer Utama Game -->
+    <main class="max-w-7xl mx-auto px-6 pb-24">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- GAME 1: Silakan Copy-Paste bagian ini untuk menambah game baru -->
+        <div
+          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+        >
+          <div
+            class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-blue-500 to-blue-600 mb-6 flex items-center justify-center text-white"
+          >
+            <i data-lucide="calculator" size="56"></i>
           </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="bg-yellow-100 p-3 rounded-xl text-yellow-600"><Trophy /></div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Siswa Aktif</p>
-              <p className="text-2xl font-bold">120+ Siswa</p>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-            <button 
-              onClick={() => setShowForm(true)}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-indigo-200"
+          <div class="px-2 flex-grow">
+            <span
+              class="text-xs font-bold uppercase tracking-widest text-blue-500 mb-2 block"
+              >Vocabulary Adventure Quest</span
             >
-              <Plus size={20} /> Tambah Game Baru
-            </button>
+            <h3 class="text-2xl font-bold mb-3">Belajar Kosa Kata</h3>
+            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+              Berpetualang hindari bahaya sambil belajar kosa kata
+            </p>
           </div>
+          <a
+            href="https://vocabulary-game-smpta.vercel.app/"
+            target="_blank"
+            class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
+          >
+            Main Sekarang <i data-lucide="play-circle" size="18"></i>
+          </a>
         </div>
 
-        {/* Section Title */}
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Gamepad2 className="text-indigo-600" /> Koleksi Game Edukasi
-          </h2>
-        </div>
-
-        {/* Game Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {games.map((game) => (
-            <div key={game.id} className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
-              {/* Card Header (Colored) */}
-              <div className={`${game.color} h-32 flex items-center justify-center text-white relative`}>
-                <span className="bg-black/20 text-xs uppercase tracking-widest font-bold py-1 px-3 rounded-full absolute top-4 left-4">
-                  {game.category}
-                </span>
-                <Gamepad2 size={48} className="opacity-50 group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              
-              {/* Card Body */}
-              <div className="p-6 flex-grow">
-                <h3 className="text-xl font-bold mb-2 group-hover:text-indigo-600 transition-colors">{game.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                  {game.description}
-                </p>
-              </div>
-
-              {/* Card Footer */}
-              <div className="p-6 pt-0 flex gap-2">
-                <a 
-                  href={game.link} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex-grow bg-gray-900 hover:bg-black text-white text-center py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
-                >
-                  Main Sekarang <ExternalLink size={16} />
-                </a>
-                <button 
-                  onClick={() => removeGame(game.id)}
-                  className="bg-red-50 hover:bg-red-100 text-red-500 p-3 rounded-xl transition-colors"
-                  title="Hapus Game"
-                >
-                  <Trash2 size={20} />
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {games.length === 0 && (
-            <div className="col-span-full py-20 text-center text-gray-500">
-              <p className="text-lg">Belum ada game. Klik tombol "Tambah Game Baru" untuk memulai!</p>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Modal Form Tambah Game */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="bg-indigo-600 p-6 text-white">
-              <h3 className="text-xl font-bold">Input Data Game</h3>
-              <p className="text-indigo-100 text-sm">Tambahkan link game eksternal Anda di sini.</p>
-            </div>
-            <form onSubmit={handleAddGame} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-700">Judul Game</label>
-                <input 
-                  type="text" 
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                  placeholder="Contoh: Teka-Teki Silang Sains"
-                  value={newGame.title}
-                  onChange={(e) => setNewGame({...newGame, title: e.target.value})}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-700">Deskripsi Singkat</label>
-                <textarea 
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none h-24"
-                  placeholder="Apa yang akan dipelajari siswa?"
-                  value={newGame.description}
-                  onChange={(e) => setNewGame({...newGame, description: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-700">Link Game (URL)</label>
-                <input 
-                  type="url" 
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                  placeholder="https://wordwall.net/..."
-                  value={newGame.link}
-                  onChange={(e) => setNewGame({...newGame, link: e.target.value})}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-700">Kategori</label>
-                <select 
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                  value={newGame.category}
-                  onChange={(e) => setNewGame({...newGame, category: e.target.value})}
-                >
-                  {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                </select>
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button 
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 px-4 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  Batal
-                </button>
-                <button 
-                  type="submit"
-                  className="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg"
-                >
-                  Simpan Game
-                </button>
-              </div>
-            </form>
+        <!-- GAME 2 -->
+        <div
+          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+        >
+          <div
+            class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-emerald-500 to-emerald-600 mb-6 flex items-center justify-center text-white"
+          >
+            <i data-lucide="languages" size="56"></i>
           </div>
+          <div class="px-2 flex-grow">
+            <span
+              class="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-2 block"
+              >Galactic Verb Sorting</span
+            >
+            <h3 class="text-2xl font-bold mb-3">Regular & Irregular Verb</h3>
+            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+              Pelajari Past Verb Bersama Teman
+            </p>
+          </div>
+          <a
+            href="https://cutehiruma.github.io/galactic-verb-sorting/"
+            target="_blank"
+            class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
+          >
+            Main Sekarang <i data-lucide="play-circle" size="18"></i>
+          </a>
         </div>
-      )}
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-10">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-gray-500 mb-2 font-medium">Dibuat dengan ❤️ untuk Pendidikan Indonesia</p>
-          <p className="text-sm text-gray-400">© 2024 Portal EduGame Guru - Menginspirasi Lewat Bermain</p>
+        <!-- GAME 3 -->
+        <div
+          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+        >
+          <div
+            class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-purple-500 to-purple-600 mb-6 flex items-center justify-center text-white"
+          >
+            <i data-lucide="microscope" size="56"></i>
+          </div>
+          <div class="px-2 flex-grow">
+            <span
+              class="text-xs font-bold uppercase tracking-widest text-purple-500 mb-2 block"
+              >Sentence Scramble Race</span
+            >
+            <h3 class="text-2xl font-bold mb-3">Buat Kalimat Menarik</h3>
+            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+              Susun kata-kata yang acak menjadi kalimat yang sempurna dan
+              bermakna.
+            </p>
+          </div>
+          <a
+            href="https://cutehiruma.github.io/sentence-scramble-race/"
+            target="_blank"
+            class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
+          >
+            Main Sekarang <i data-lucide="play-circle" size="18"></i>
+          </a>
         </div>
-      </footer>
-    </div>
-  );
-};
+      </div>
+    </main>
 
-export default App;
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 py-12">
+      <div class="max-w-7xl mx-auto px-6 text-center">
+        <!-- Bagian Sosial Media yang Bisa Diklik -->
+        <div class="flex justify-center gap-8 mb-6 text-slate-400">
+          <a
+            href="https://www.facebook.com/teddyansyah"
+            target="_blank"
+            class="social-link"
+            title="Facebook"
+          >
+            <i data-lucide="facebook" size="24"></i>
+          </a>
+          <a
+            href="https://www.instagram.com/cutehiruma"
+            target="_blank"
+            class="social-link"
+            title="Instagram"
+          >
+            <i data-lucide="instagram" size="24"></i>
+          </a>
+          <a
+            href="https://www.youtube.com/@teddyansyahabidin9848"
+            target="_blank"
+            class="social-link"
+            title="Youtube"
+          >
+            <i data-lucide="youtube" size="24"></i>
+          </a>
+          <a
+            href="https://www.tiktok.com/@cutehiruma"
+            target="_blank"
+            class="social-link"
+            title="TikTok"
+          >
+            <!-- Menggunakan ikon music/video sebagai alternatif TikTok jika brand icon tidak tersedia langsung -->
+            <i data-lucide="music-2" size="24"></i>
+          </a>
+        </div>
+        <p class="text-slate-500 text-sm font-medium">
+          © 2024 Portal Edukasi Guru. Semangat Mencerdaskan Bangsa!
+        </p>
+      </div>
+    </footer>
+
+    <!-- Inisialisasi Ikon -->
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
