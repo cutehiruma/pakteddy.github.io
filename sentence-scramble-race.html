@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Sentence Scramble Race - Extended Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #00ff41;
+        --bg: #050505;
+        --card-bg: #111;
+      }
+
+      body {
+        font-family: "Share Tech Mono", monospace;
+        background-color: var(--bg);
+        color: var(--primary);
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        overflow: hidden;
+        touch-action: none;
+        user-select: none;
+      }
+
+      .matrix-grid {
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        z-index: -1;
+      }
+
+      .slot-area {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        min-height: 120px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(0, 255, 65, 0.1);
+        border-radius: 12px;
+      }
+
+      .word-slot {
+        min-width: 100px;
+        height: 50px;
+        border-bottom: 2px solid #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .word-slot.active {
+        border-bottom-color: var(--primary);
+        background: rgba(0, 255, 65, 0.05);
+      }
+
+      .word-chip {
+        background: #1a1a1a;
+        border: 2px solid var(--primary);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: grab;
+        box-shadow: 0 4px 0 #004d1a;
+        touch-action: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+      }
+
+      .word-chip.dragging {
+        position: fixed !important;
+        z-index: 9999;
+        pointer-events: none;
+        opacity: 0.9;
+        transform: scale(1.1);
+        box-shadow: 0 10px 20px rgba(0, 255, 65, 0.3);
+      }
+
+      .btn-check {
+        background: var(--primary);
+        color: black;
+        font-weight: 800;
+        padding: 10px 25px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+
+      .btn-check:disabled {
+        background: #1a331a;
+        color: #004d1a;
+        cursor: not-allowed;
+      }
+
+      .btn-check:not(:disabled):hover {
+        filter: brightness(1.2);
+        transform: translateY(-2px);
+      }
+
+      .error-shake {
+        animation: shake 0.4s ease-in-out;
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-8px);
+        }
+        75% {
+          transform: translateX(8px);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .slot-area {
+          min-height: 180px;
+        }
+        .word-chip {
+          font-size: 14px;
+          padding: 6px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="matrix-grid"></div>
+
+    <header
+      class="fixed top-0 w-full p-4 flex justify-between items-center z-50"
+    >
+      <div class="text-left">
+        <div class="text-[10px] opacity-50">NODE_ALPHA</div>
+        <div id="scoreA" class="text-2xl font-bold">WINS: 0</div>
+      </div>
+
+      <div class="text-center">
+        <h1 class="text-xl md:text-3xl font-black tracking-[0.3em] text-white">
+          SENTENCE BREAKER
+        </h1>
+        <div id="timer" class="text-yellow-500 font-mono text-xl">00:00</div>
+        <button
+          id="startBtn"
+          onclick="initGame()"
+          class="mt-2 bg-transparent border border-primary text-primary px-6 py-1 rounded-full text-xs font-bold hover:bg-primary hover:text-black transition"
+        >
+          INITIALIZE_GAME
+        </button>
+      </div>
+
+      <div class="text-right">
+        <div class="text-[10px] opacity-50">NODE_BETA</div>
+        <div id="scoreB" class="text-2xl font-bold">WINS: 0</div>
+      </div>
+    </header>
+
+    <main class="flex h-full pt-32 pb-8 px-4 gap-4">
+      <!-- Player A Side -->
+      <section
+        class="flex-1 flex flex-col bg-black/40 border border-white/5 rounded-3xl p-4 overflow-hidden"
+      >
+        <div class="flex justify-between items-center mb-4 px-2">
+          <span class="text-xs font-bold text-primary">TEAM_ALPHA</span>
+          <button
+            id="checkA"
+            onclick="validate('A')"
+            class="btn-check text-xs"
+            disabled
+          >
+            Check
+          </button>
+        </div>
+
+        <div class="flex-1 flex flex-col gap-6 overflow-y-auto">
+          <div id="targetA" class="slot-area"></div>
+          <div class="text-[10px] text-center opacity-30">
+            --- WORD BANK ---
+          </div>
+          <div id="sourceA" class="slot-area border-dashed"></div>
+        </div>
+      </section>
+
+      <!-- Player B Side -->
+      <section
+        class="flex-1 flex flex-col bg-black/40 border border-white/5 rounded-3xl p-4 overflow-hidden"
+      >
+        <div class="flex justify-between items-center mb-4 px-2">
+          <span class="text-xs font-bold text-primary">TEAM_BETA</span>
+          <button
+            id="checkB"
+            onclick="validate('B')"
+            class="btn-check text-xs"
+            disabled
+          >
+            Check
+          </button>
+        </div>
+
+        <div class="flex-1 flex flex-col gap-6 overflow-y-auto">
+          <div id="targetB" class="slot-area"></div>
+          <div class="text-[10px] text-center opacity-30">
+            --- WORD BANK ---
+          </div>
+          <div id="sourceB" class="slot-area border-dashed"></div>
+        </div>
+      </section>
+    </main>
+
+    <div
+      id="modal"
+      class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[10000]"
+    >
+      <div
+        class="text-center p-10 border-2 border-primary rounded-xl bg-black shadow-[0_0_50px_rgba(0,255,65,0.2)]"
+      >
+        <h2 id="modalTitle" class="text-5xl font-black mb-4">NODE SYNCED</h2>
+        <p
+          id="modalWinner"
+          class="text-xl mb-10 text-white tracking-widest"
+        ></p>
+        <button onclick="location.reload()" class="btn-check px-12 py-4">
+          REBOOT SYSTEM
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Database kalimat yang diperluas
+      const sentencePool = [
+        "I GO TO SCHOOL EVERY DAY",
+        "THEY ARE PLAYING FOOTBALL NOW",
+        "MY FATHER IS A DOCTOR",
+        "SHE COOKS RICE IN THE KITCHEN",
+        "WE WATCH MOVIE ON SUNDAY",
+        "THE CAT IS SLEEPING UNDER TABLE",
+        "HE DRINKS MILK EVERY MORNING",
+        "BIRDS FLY IN THE BLUE SKY",
+        "WE LOVE TO EAT PIZZA",
+        "STUDENTS STUDY HARD FOR EXAM",
+        "THE SUN RISES IN THE EAST",
+        "I HAVE TWO BROTHERS AND SISTERS",
+        "THEY VISIT THEIR GRANDMA ON WEEKEND",
+        "WATER BOILS AT ONE HUNDRED DEGREES",
+        "SHE WRITES A LETTER FOR FRIEND",
+        "WE PLAY HIDE AND SEEK TOGETHER",
+        "THE FLOWERS ARE BLOOMING IN GARDEN",
+        "HE RIDES HIS BICYCLE TO PARK",
+        "MY MOTHER BAKES A CHOCOLATE CAKE",
+        "THE DOG BARKS AT THE STRANGER",
+        "THEY LISTEN TO MUSIC EVERY NIGHT",
+        "I BRUSH MY TEETH BEFORE SLEEP",
+        "WE GO SWIMMING IN THE POOL",
+        "THE RAIN FALLS FROM THE CLOUDS",
+        "SHE READS A STORY BOOK ALOUD",
+        "THE TEACHER EXPLAINS THE LESSON CLEARLY",
+        "MY BROTHER REPAIRS THE BROKEN TOY",
+        "WE HELP OUR PARENTS AT HOME",
+        "THE FARMER PLANTS RICE IN FIELD",
+        "THE CHILDREN LAUGH IN THE PLAYGROUND",
+      ];
+
+      let state = {
+        A: { wins: 0, current: [], original: "" },
+        B: { wins: 0, current: [], original: "" },
+        gameActive: false,
+        time: 0,
+      };
+
+      let dragItem = null;
+      let startX, startY;
+      let originalParent = null;
+
+      function initGame() {
+        state.gameActive = true;
+        document.getElementById("startBtn").classList.add("hidden");
+        nextLevel("A");
+        nextLevel("B");
+
+        setInterval(() => {
+          if (!state.gameActive) return;
+          state.time++;
+          const m = Math.floor(state.time / 60)
+            .toString()
+            .padStart(2, "0");
+          const s = (state.time % 60).toString().padStart(2, "0");
+          document.getElementById("timer").innerText = `${m}:${s}`;
+        }, 1000);
+      }
+
+      function nextLevel(team) {
+        // Mengambil kalimat acak dari pool yang besar
+        const raw =
+          sentencePool[Math.floor(Math.random() * sentencePool.length)];
+        const words = raw.split(" ");
+        state[team].original = raw;
+        state[team].current = words;
+
+        const targetArea = document.getElementById(`target${team}`);
+        const sourceArea = document.getElementById(`source${team}`);
+        const checkBtn = document.getElementById(`check${team}`);
+
+        targetArea.innerHTML = "";
+        sourceArea.innerHTML = "";
+        checkBtn.disabled = true;
+
+        words.forEach(() => {
+          const slot = document.createElement("div");
+          slot.className = "word-slot";
+          slot.dataset.team = team;
+          targetArea.appendChild(slot);
+        });
+
+        const shuffled = [...words].sort(() => Math.random() - 0.5);
+        shuffled.forEach((w) => {
+          const slot = document.createElement("div");
+          slot.className = "word-slot";
+          slot.dataset.team = team;
+
+          const chip = createChip(w, team);
+          slot.appendChild(chip);
+          sourceArea.appendChild(slot);
+        });
+      }
+
+      function createChip(text, team) {
+        const el = document.createElement("div");
+        el.className = "word-chip";
+        el.innerText = text;
+        el.dataset.team = team;
+        el.addEventListener("pointerdown", onPointerDown);
+        return el;
+      }
+
+      function onPointerDown(e) {
+        if (!state.gameActive) return;
+        dragItem = e.currentTarget;
+        originalParent = dragItem.parentElement;
+
+        const rect = dragItem.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+
+        dragItem.classList.add("dragging");
+        dragItem.style.width = rect.width + "px";
+        dragItem.style.left = rect.left + "px";
+        dragItem.style.top = rect.top + "px";
+
+        dragItem.setPointerCapture(e.pointerId);
+        dragItem.addEventListener("pointermove", onPointerMove);
+        dragItem.addEventListener("pointerup", onPointerUp);
+      }
+
+      function onPointerMove(e) {
+        if (!dragItem) return;
+        dragItem.style.left = e.clientX - startX + "px";
+        dragItem.style.top = e.clientY - startY + "px";
+
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        const slot = target?.closest(".word-slot");
+
+        document
+          .querySelectorAll(".word-slot")
+          .forEach((s) => s.classList.remove("active"));
+        if (
+          slot &&
+          slot.dataset.team === dragItem.dataset.team &&
+          !slot.hasChildNodes()
+        ) {
+          slot.classList.add("active");
+        }
+      }
+
+      function onPointerUp(e) {
+        if (!dragItem) return;
+
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        const slot = target?.closest(".word-slot");
+        const team = dragItem.dataset.team;
+
+        if (slot && slot.dataset.team === team && !slot.hasChildNodes()) {
+          slot.appendChild(dragItem);
+        } else {
+          originalParent.appendChild(dragItem);
+        }
+
+        dragItem.classList.remove("dragging");
+        dragItem.style.position = "static";
+        dragItem.style.width = "auto";
+
+        const targetArea = document.getElementById(`target${team}`);
+        const chipsInTarget = targetArea.querySelectorAll(".word-chip").length;
+        document.getElementById(`check${team}`).disabled =
+          chipsInTarget < state[team].current.length;
+
+        dragItem.removeEventListener("pointermove", onPointerMove);
+        dragItem.removeEventListener("pointerup", onPointerUp);
+        dragItem = null;
+      }
+
+      function validate(team) {
+        const targetArea = document.getElementById(`target${team}`);
+        const chips = targetArea.querySelectorAll(".word-chip");
+        const userSentence = Array.from(chips)
+          .map((c) => c.innerText)
+          .join(" ");
+
+        if (userSentence === state[team].original) {
+          state[team].wins++;
+          document.getElementById(`score${team}`).innerText =
+            `WINS: ${state[team].wins}`;
+
+          if (state[team].wins >= 3) {
+            showWin(team === "A" ? "TEAM ALPHA" : "TEAM BETA");
+          } else {
+            targetArea.style.borderColor = "#00ff41";
+            setTimeout(() => {
+              targetArea.style.borderColor = "";
+              nextLevel(team);
+            }, 800);
+          }
+        } else {
+          targetArea.classList.add("error-shake");
+          targetArea.style.borderColor = "#ff4141";
+          setTimeout(() => {
+            targetArea.classList.remove("error-shake");
+            targetArea.style.borderColor = "";
+          }, 500);
+        }
+      }
+
+      function showWin(winner) {
+        state.gameActive = false;
+        const modal = document.getElementById("modal");
+        const winnerText = document.getElementById("modalWinner");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        winnerText.innerText = `${winner} HAS SECURED THE DATABASE`;
+      }
+
+      window.addEventListener("contextmenu", (e) => e.preventDefault());
+    </script>
+  </body>
+</html>

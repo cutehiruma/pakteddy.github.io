@@ -1,0 +1,1768 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escape Room: Trapped in the Narrative World</title>
+    <script src="/_sdk/element_sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Comic+Neue:wght@400;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        box-sizing: border-box;
+      }
+
+      * {
+        font-family: "Fredoka", "Comic Neue", cursive, sans-serif;
+      }
+
+      .screen {
+        display: none;
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      .screen.active {
+        display: flex;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+
+      @keyframes glow {
+        0%,
+        100% {
+          box-shadow: 0 0 5px currentColor;
+        }
+        50% {
+          box-shadow:
+            0 0 20px currentColor,
+            0 0 30px currentColor;
+        }
+      }
+
+      @keyframes doorOpen {
+        0% {
+          transform: perspective(500px) rotateY(0deg);
+        }
+        100% {
+          transform: perspective(500px) rotateY(-105deg);
+        }
+      }
+
+      @keyframes keyFloat {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+        50% {
+          transform: translateY(-15px) rotate(10deg);
+        }
+      }
+
+      @keyframes confetti {
+        0% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100px) rotate(720deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes starBurst {
+        0% {
+          transform: scale(0) rotate(0deg);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.2) rotate(180deg);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(0) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      .bounce {
+        animation: bounce 1s ease-in-out infinite;
+      }
+
+      .pulse {
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .shake {
+        animation: shake 0.5s ease-in-out;
+      }
+
+      .glow {
+        animation: glow 2s ease-in-out infinite;
+      }
+
+      .key-float {
+        animation: keyFloat 2s ease-in-out infinite;
+      }
+
+      .door-open {
+        animation: doorOpen 1s ease-out forwards;
+        transform-origin: left center;
+      }
+
+      .btn-game {
+        transition: all 0.3s ease;
+        touch-action: manipulation;
+      }
+
+      .btn-game:hover {
+        transform: scale(1.05);
+      }
+
+      .btn-game:active {
+        transform: scale(0.95);
+      }
+
+      .option-btn {
+        transition: all 0.3s ease;
+      }
+
+      .option-btn.selected {
+        transform: scale(1.02);
+      }
+
+      .option-btn.correct {
+        background: linear-gradient(135deg, #10b981, #059669) !important;
+        color: white !important;
+        border-color: #059669 !important;
+      }
+
+      .option-btn.wrong {
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        color: white !important;
+        border-color: #dc2626 !important;
+      }
+
+      .sequence-item {
+        cursor: grab;
+        transition: all 0.3s ease;
+        touch-action: manipulation;
+      }
+
+      .sequence-item:active {
+        cursor: grabbing;
+      }
+
+      .sequence-item.dragging {
+        opacity: 0.5;
+        transform: scale(1.05);
+      }
+
+      .sequence-item.selected {
+        border-color: #8b5cf6;
+        background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+      }
+
+      .room-indicator {
+        transition: all 0.3s ease;
+      }
+
+      .room-indicator.completed {
+        background: linear-gradient(135deg, #10b981, #059669);
+      }
+
+      .room-indicator.current {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .room-indicator.locked {
+        background: linear-gradient(135deg, #9ca3af, #6b7280);
+      }
+
+      .story-box {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border: 3px solid #d97706;
+        border-radius: 20px;
+        position: relative;
+      }
+
+      .story-box::before {
+        content: "📖";
+        position: absolute;
+        top: -15px;
+        left: 20px;
+        font-size: 30px;
+      }
+
+      .feedback-box {
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .confetti-piece {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        animation: confetti 3s ease-out forwards;
+      }
+
+      .star-burst {
+        position: fixed;
+        font-size: 30px;
+        animation: starBurst 1s ease-out forwards;
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #8b5cf6, #6366f1);
+        border-radius: 10px;
+      }
+    </style>
+    <style>
+      @view-transition {
+        navigation: auto;
+      }
+    </style>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  </head>
+  <body
+    class="h-full overflow-auto bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800"
+  >
+    <div id="app" class="min-h-full w-full flex flex-col">
+      <!-- START SCREEN -->
+      <div
+        id="start-screen"
+        class="screen active flex-col items-center justify-center min-h-full p-4 text-center"
+      >
+        <div class="max-w-2xl mx-auto">
+          <!-- Animated Book Icon -->
+          <div class="text-8xl mb-6 bounce">📚</div>
+          <!-- Title -->
+          <h1
+            id="game-title"
+            class="text-3xl md:text-5xl font-bold text-white mb-6 drop-shadow-lg"
+          >
+            🏰 Escape Room 🏰
+          </h1>
+          <h2 class="text-xl md:text-2xl font-semibold text-yellow-300 mb-8">
+            Trapped in the Narrative World
+          </h2>
+          <!-- Story Introduction -->
+          <div
+            class="bg-white/95 rounded-3xl p-6 md:p-8 shadow-2xl mb-8 text-left"
+          >
+            <div class="flex items-start gap-4">
+              <span class="text-4xl">🌟</span>
+              <div>
+                <h3 class="text-xl font-bold text-purple-700 mb-3">
+                  The Story Begins...
+                </h3>
+                <p
+                  id="intro-story"
+                  class="text-gray-700 text-lg leading-relaxed"
+                >
+                  One day, while reading a magical story book in the library,
+                  you suddenly got sucked into the book! 😱 <br /><br />
+                  Now you are <strong>trapped inside the story world</strong>.
+                  The only way to escape is to understand the narrative text and
+                  solve all the challenges! <br /><br /><span
+                    class="text-purple-600 font-semibold"
+                    >Are you ready to escape? 🔑</span
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+          <!-- Start Button -->
+          <button
+            onclick="showScreen('instruction-screen')"
+            class="btn-game bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-2xl font-bold py-5 px-12 rounded-full shadow-lg hover:shadow-xl glow"
+          >
+            🚀 START ADVENTURE 🚀
+          </button>
+        </div>
+      </div>
+      <!-- INSTRUCTION SCREEN -->
+      <div
+        id="instruction-screen"
+        class="screen flex-col items-center justify-center min-h-full p-4 text-center"
+      >
+        <div class="max-w-2xl mx-auto">
+          <div class="text-6xl mb-6">📋</div>
+          <h1 class="text-3xl md:text-4xl font-bold text-white mb-8">
+            How to Play
+          </h1>
+          <div
+            class="bg-white/95 rounded-3xl p-6 md:p-8 shadow-2xl mb-8 text-left"
+          >
+            <div class="space-y-4">
+              <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-2xl">
+                <span class="text-3xl">1️⃣</span>
+                <p class="text-lg text-gray-700">
+                  <strong>Read</strong> the story carefully 📖
+                </p>
+              </div>
+              <div class="flex items-center gap-4 p-4 bg-green-50 rounded-2xl">
+                <span class="text-3xl">2️⃣</span>
+                <p class="text-lg text-gray-700">
+                  <strong>Solve</strong> the challenges in each room 🧩
+                </p>
+              </div>
+              <div class="flex items-center gap-4 p-4 bg-yellow-50 rounded-2xl">
+                <span class="text-3xl">3️⃣</span>
+                <p class="text-lg text-gray-700">
+                  <strong>Find the key</strong> to unlock the next room 🔑
+                </p>
+              </div>
+              <div class="flex items-center gap-4 p-4 bg-purple-50 rounded-2xl">
+                <span class="text-3xl">4️⃣</span>
+                <p class="text-lg text-gray-700">
+                  <strong>Complete all 4 rooms</strong> to escape! 🏆
+                </p>
+              </div>
+            </div>
+            <div class="mt-6 p-4 bg-red-50 rounded-2xl border-2 border-red-200">
+              <p class="text-red-600 font-semibold flex items-center gap-2">
+                <span class="text-2xl">⚠️</span> Don't worry! You can try again
+                if you make a mistake!
+              </p>
+            </div>
+          </div>
+          <!-- Room Progress Preview -->
+          <div class="flex justify-center gap-3 mb-8">
+            <div
+              class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg"
+            >
+              1
+            </div>
+            <div
+              class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold shadow-lg"
+            >
+              2
+            </div>
+            <div
+              class="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-bold shadow-lg"
+            >
+              3
+            </div>
+            <div
+              class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg"
+            >
+              4
+            </div>
+          </div>
+          <button
+            onclick="startGame()"
+            class="btn-game bg-gradient-to-r from-green-400 to-emerald-500 text-white text-2xl font-bold py-5 px-12 rounded-full shadow-lg hover:shadow-xl"
+          >
+            🚪 ENTER THE BOOK 🚪
+          </button>
+        </div>
+      </div>
+      <!-- ROOM 1: ORIENTATION ROOM -->
+      <div id="room1-screen" class="screen flex-col min-h-full p-4">
+        <div class="max-w-3xl mx-auto w-full">
+          <!-- Room Header -->
+          <div class="text-center mb-6">
+            <div
+              class="inline-flex items-center gap-2 bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg"
+            >
+              <span>🚪</span> ROOM 1: Orientation Room <span>🚪</span>
+            </div>
+          </div>
+          <!-- Progress Indicator -->
+          <div class="flex justify-center gap-2 mb-6">
+            <div
+              id="room1-indicator"
+              class="room-indicator current w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              1
+            </div>
+            <div
+              id="room2-indicator"
+              class="room-indicator locked w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              🔒
+            </div>
+            <div
+              id="room3-indicator"
+              class="room-indicator locked w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              🔒
+            </div>
+            <div
+              id="room4-indicator"
+              class="room-indicator locked w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              🔒
+            </div>
+          </div>
+          <!-- Learning Objective -->
+          <div
+            class="bg-blue-100 border-2 border-blue-300 rounded-2xl p-4 mb-6 text-center"
+          >
+            <p class="text-blue-700 font-semibold">
+              🎯 <strong>Mission:</strong> Find the <em>characters</em> and
+              <em>setting</em> of the story!
+            </p>
+          </div>
+          <!-- Story Box -->
+          <div class="story-box p-6 mb-6">
+            <h3 class="text-xl font-bold text-amber-800 mb-4 ml-8">
+              The Clever Mouse Deer
+            </h3>
+            <p class="text-gray-800 leading-relaxed text-lg">
+              <strong>Once upon a time</strong>, there lived a clever mouse deer
+              named <strong>Kancil</strong> in a big forest in Indonesia. One
+              sunny morning, Kancil was walking near the river looking for food.
+              <br /><br />
+              Suddenly, he met a big crocodile named <strong>Buaya</strong>. The
+              crocodile was very hungry and wanted to eat Kancil. "Ha ha! Today
+              I will eat you for breakfast!" said the crocodile. <br /><br />
+              But Kancil was not afraid. He had a clever plan to escape from the
+              dangerous crocodile.
+            </p>
+          </div>
+          <!-- Questions -->
+          <div class="bg-white/95 rounded-3xl p-6 shadow-xl">
+            <h3
+              class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2"
+            >
+              <span class="text-2xl">❓</span> Answer these questions:
+            </h3>
+            <!-- Question 1 -->
+            <div class="mb-6">
+              <p class="text-lg font-semibold text-gray-700 mb-3">
+                1. Who is the main character in the story?
+              </p>
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 gap-3"
+                id="q1-options"
+              >
+                <button
+                  onclick="selectAnswer('q1', 'A', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  A. Buaya the crocodile
+                </button>
+                <button
+                  onclick="selectAnswer('q1', 'B', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  B. Kancil the mouse deer
+                </button>
+                <button
+                  onclick="selectAnswer('q1', 'C', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  C. A farmer
+                </button>
+                <button
+                  onclick="selectAnswer('q1', 'D', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  D. A hunter
+                </button>
+              </div>
+            </div>
+            <!-- Question 2 -->
+            <div class="mb-6">
+              <p class="text-lg font-semibold text-gray-700 mb-3">
+                2. Where does the story take place?
+              </p>
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 gap-3"
+                id="q2-options"
+              >
+                <button
+                  onclick="selectAnswer('q2', 'A', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  A. In a city
+                </button>
+                <button
+                  onclick="selectAnswer('q2', 'B', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  B. In a forest near a river
+                </button>
+                <button
+                  onclick="selectAnswer('q2', 'C', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  C. In a school
+                </button>
+                <button
+                  onclick="selectAnswer('q2', 'D', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  D. In a village
+                </button>
+              </div>
+            </div>
+            <!-- Feedback Area -->
+            <div id="room1-feedback" class="hidden"></div>
+            <!-- Check Button -->
+            <button
+              id="room1-check-btn"
+              onclick="checkRoom1()"
+              class="btn-game w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xl font-bold py-4 rounded-2xl shadow-lg mt-4"
+            >
+              🔍 CHECK ANSWERS
+            </button>
+            <!-- Next Room Button (Hidden initially) -->
+            <button
+              id="room1-next-btn"
+              onclick="showScreen('room2-screen')"
+              class="hidden btn-game w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xl font-bold py-4 rounded-2xl shadow-lg mt-4"
+            >
+              🚪 GO TO ROOM 2 →
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ROOM 2: SEQUENCE OF EVENTS ROOM -->
+      <div id="room2-screen" class="screen flex-col min-h-full p-4">
+        <div class="max-w-3xl mx-auto w-full">
+          <!-- Room Header -->
+          <div class="text-center mb-6">
+            <div
+              class="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg"
+            >
+              <span>🚪</span> ROOM 2: Sequence Room <span>🚪</span>
+            </div>
+          </div>
+          <!-- Progress Indicator -->
+          <div class="flex justify-center gap-2 mb-6">
+            <div
+              class="room-indicator completed w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              ✓
+            </div>
+            <div
+              class="room-indicator current w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              2
+            </div>
+            <div
+              class="room-indicator locked w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              🔒
+            </div>
+            <div
+              class="room-indicator locked w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              🔒
+            </div>
+          </div>
+          <!-- Learning Objective -->
+          <div
+            class="bg-green-100 border-2 border-green-300 rounded-2xl p-4 mb-6 text-center"
+          >
+            <p class="text-green-700 font-semibold">
+              🎯 <strong>Mission:</strong> Arrange the story events in the
+              correct order!
+            </p>
+          </div>
+          <!-- Story Continuation -->
+          <div class="story-box p-6 mb-6">
+            <h3 class="text-xl font-bold text-amber-800 mb-4 ml-8">
+              What happened next?
+            </h3>
+            <p class="text-gray-800 leading-relaxed text-lg">
+              Kancil thought quickly. <strong>"Wait!"</strong> he said to the
+              crocodile.
+              <strong
+                >"Before you eat me, can you help me count how many crocodiles
+                live in this river?"</strong
+              >
+              <br /><br />
+              The crocodile was curious.
+              <strong>"Why do you want to know?"</strong> he asked.
+              <br /><br /><strong
+                >"The King wants to give food to all the crocodiles,"</strong
+              >
+              Kancil lied cleverly.
+              <strong
+                >"Please call all your friends and line up across the river so I
+                can count you."</strong
+              >
+            </p>
+          </div>
+          <!-- Sequence Task -->
+          <div class="bg-white/95 rounded-3xl p-6 shadow-xl">
+            <h3
+              class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"
+            >
+              <span class="text-2xl">🔢</span> Put the events in order (1, 2, 3,
+              4):
+            </h3>
+            <p class="text-gray-600 mb-4">
+              Click the events in the correct order!
+            </p>
+            <!-- Sequence Items -->
+            <div id="sequence-container" class="space-y-3 mb-6">
+              <div
+                class="sequence-item p-4 bg-gray-50 border-3 border-gray-200 rounded-xl flex items-center gap-3"
+                data-event="C"
+                onclick="selectSequence(this, 'C')"
+              >
+                <span
+                  class="sequence-number w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-lg"
+                  >?</span
+                >
+                <p class="text-lg">
+                  Kancil jumped on the crocodiles' backs to cross the river.
+                </p>
+              </div>
+              <div
+                class="sequence-item p-4 bg-gray-50 border-3 border-gray-200 rounded-xl flex items-center gap-3"
+                data-event="A"
+                onclick="selectSequence(this, 'A')"
+              >
+                <span
+                  class="sequence-number w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-lg"
+                  >?</span
+                >
+                <p class="text-lg">The crocodile wanted to eat Kancil.</p>
+              </div>
+              <div
+                class="sequence-item p-4 bg-gray-50 border-3 border-gray-200 rounded-xl flex items-center gap-3"
+                data-event="D"
+                onclick="selectSequence(this, 'D')"
+              >
+                <span
+                  class="sequence-number w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-lg"
+                  >?</span
+                >
+                <p class="text-lg">
+                  Kancil escaped safely and laughed at the crocodiles.
+                </p>
+              </div>
+              <div
+                class="sequence-item p-4 bg-gray-50 border-3 border-gray-200 rounded-xl flex items-center gap-3"
+                data-event="B"
+                onclick="selectSequence(this, 'B')"
+              >
+                <span
+                  class="sequence-number w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-lg"
+                  >?</span
+                >
+                <p class="text-lg">
+                  Kancil asked the crocodiles to line up across the river.
+                </p>
+              </div>
+            </div>
+            <!-- Your Order Display -->
+            <div
+              class="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mb-4"
+            >
+              <p class="font-semibold text-purple-700 mb-2">Your order:</p>
+              <div
+                id="sequence-order"
+                class="flex gap-2 flex-wrap min-h-12 items-center"
+              >
+                <span class="text-gray-400">Click the events above...</span>
+              </div>
+            </div>
+            <button
+              id="reset-sequence-btn"
+              onclick="resetSequence()"
+              class="btn-game w-full bg-gray-400 text-white text-lg font-bold py-3 rounded-xl shadow-lg mb-3"
+            >
+              🔄 RESET ORDER
+            </button>
+            <!-- Feedback Area -->
+            <div id="room2-feedback" class="hidden"></div>
+            <!-- Check Button -->
+            <button
+              id="room2-check-btn"
+              onclick="checkRoom2()"
+              class="btn-game w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xl font-bold py-4 rounded-2xl shadow-lg"
+            >
+              🔍 CHECK ORDER
+            </button>
+            <!-- Next Room Button (Hidden initially) -->
+            <button
+              id="room2-next-btn"
+              onclick="showScreen('room3-screen')"
+              class="hidden btn-game w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xl font-bold py-4 rounded-2xl shadow-lg mt-4"
+            >
+              🚪 GO TO ROOM 3 →
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ROOM 3: COMPLICATION ROOM -->
+      <div id="room3-screen" class="screen flex-col min-h-full p-4">
+        <div class="max-w-3xl mx-auto w-full">
+          <!-- Room Header -->
+          <div class="text-center mb-6">
+            <div
+              class="inline-flex items-center gap-2 bg-yellow-500 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg"
+            >
+              <span>🚪</span> ROOM 3: Complication Room <span>🚪</span>
+            </div>
+          </div>
+          <!-- Progress Indicator -->
+          <div class="flex justify-center gap-2 mb-6">
+            <div
+              class="room-indicator completed w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              ✓
+            </div>
+            <div
+              class="room-indicator completed w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              ✓
+            </div>
+            <div
+              class="room-indicator current w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              3
+            </div>
+            <div
+              class="room-indicator locked w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              🔒
+            </div>
+          </div>
+          <!-- Learning Objective -->
+          <div
+            class="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-4 mb-6 text-center"
+          >
+            <p class="text-yellow-700 font-semibold">
+              🎯 <strong>Mission:</strong> Find the problem (complication) in
+              the story!
+            </p>
+          </div>
+          <!-- Story Problem -->
+          <div class="story-box p-6 mb-6">
+            <h3 class="text-xl font-bold text-amber-800 mb-4 ml-8">
+              The Problem
+            </h3>
+            <p class="text-gray-800 leading-relaxed text-lg">
+              In every story, there is always a <strong>problem</strong> or
+              <strong>conflict</strong>. This is called the
+              <strong>complication</strong>. <br /><br />
+              In our story, Kancil faced a <strong>dangerous situation</strong>.
+              Let's find out what the problem was!
+            </p>
+          </div>
+          <!-- Questions -->
+          <div class="bg-white/95 rounded-3xl p-6 shadow-xl">
+            <h3
+              class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2"
+            >
+              <span class="text-2xl">⚡</span> Identify the problem:
+            </h3>
+            <!-- Question 1 - True/False -->
+            <div class="mb-6">
+              <p class="text-lg font-semibold text-gray-700 mb-3">
+                1. TRUE or FALSE: The main problem is that Kancil was lost in
+                the forest.
+              </p>
+              <div class="grid grid-cols-2 gap-3" id="q3-options">
+                <button
+                  onclick="selectAnswer('q3', 'TRUE', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-center hover:bg-green-50 hover:border-green-300 text-lg font-bold"
+                >
+                  ✅ TRUE
+                </button>
+                <button
+                  onclick="selectAnswer('q3', 'FALSE', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-center hover:bg-red-50 hover:border-red-300 text-lg font-bold"
+                >
+                  ❌ FALSE
+                </button>
+              </div>
+            </div>
+            <!-- Question 2 - Multiple Choice -->
+            <div class="mb-6">
+              <p class="text-lg font-semibold text-gray-700 mb-3">
+                2. What was the REAL problem in the story?
+              </p>
+              <div class="grid grid-cols-1 gap-3" id="q4-options">
+                <button
+                  onclick="selectAnswer('q4', 'A', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  A. Kancil was hungry and couldn't find food.
+                </button>
+                <button
+                  onclick="selectAnswer('q4', 'B', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  B. The crocodile wanted to eat Kancil.
+                </button>
+                <button
+                  onclick="selectAnswer('q4', 'C', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  C. Kancil wanted to cross the river for fun.
+                </button>
+              </div>
+            </div>
+            <!-- Question 3 - True/False -->
+            <div class="mb-6">
+              <p class="text-lg font-semibold text-gray-700 mb-3">
+                3. TRUE or FALSE: Kancil used his brain to solve the problem.
+              </p>
+              <div class="grid grid-cols-2 gap-3" id="q5-options">
+                <button
+                  onclick="selectAnswer('q5', 'TRUE', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-center hover:bg-green-50 hover:border-green-300 text-lg font-bold"
+                >
+                  ✅ TRUE
+                </button>
+                <button
+                  onclick="selectAnswer('q5', 'FALSE', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-center hover:bg-red-50 hover:border-red-300 text-lg font-bold"
+                >
+                  ❌ FALSE
+                </button>
+              </div>
+            </div>
+            <!-- Feedback Area -->
+            <div id="room3-feedback" class="hidden"></div>
+            <!-- Check Button -->
+            <button
+              id="room3-check-btn"
+              onclick="checkRoom3()"
+              class="btn-game w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xl font-bold py-4 rounded-2xl shadow-lg"
+            >
+              🔍 CHECK ANSWERS
+            </button>
+            <!-- Next Room Button (Hidden initially) -->
+            <button
+              id="room3-next-btn"
+              onclick="showScreen('room4-screen')"
+              class="hidden btn-game w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xl font-bold py-4 rounded-2xl shadow-lg mt-4"
+            >
+              🚪 GO TO ROOM 4 →
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ROOM 4: RESOLUTION ROOM -->
+      <div id="room4-screen" class="screen flex-col min-h-full p-4">
+        <div class="max-w-3xl mx-auto w-full">
+          <!-- Room Header -->
+          <div class="text-center mb-6">
+            <div
+              class="inline-flex items-center gap-2 bg-purple-500 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg"
+            >
+              <span>🚪</span> ROOM 4: Resolution Room <span>🚪</span>
+            </div>
+          </div>
+          <!-- Progress Indicator -->
+          <div class="flex justify-center gap-2 mb-6">
+            <div
+              class="room-indicator completed w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              ✓
+            </div>
+            <div
+              class="room-indicator completed w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              ✓
+            </div>
+            <div
+              class="room-indicator completed w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              ✓
+            </div>
+            <div
+              class="room-indicator current w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md"
+            >
+              4
+            </div>
+          </div>
+          <!-- Learning Objective -->
+          <div
+            class="bg-purple-100 border-2 border-purple-300 rounded-2xl p-4 mb-6 text-center"
+          >
+            <p class="text-purple-700 font-semibold">
+              🎯 <strong>Final Mission:</strong> Find the resolution and moral
+              value!
+            </p>
+          </div>
+          <!-- Story Ending -->
+          <div class="story-box p-6 mb-6">
+            <h3 class="text-xl font-bold text-amber-800 mb-4 ml-8">
+              The Ending
+            </h3>
+            <p class="text-gray-800 leading-relaxed text-lg">
+              The greedy crocodile believed Kancil's trick. He called all his
+              friends and they lined up across the river. <br /><br /><strong
+                >"One... two... three..."</strong
+              >
+              Kancil counted while jumping on each crocodile's back. When he
+              reached the other side, he laughed loudly. <br /><br /><strong
+                >"Ha ha! Thank you for the free bridge, silly
+                crocodiles!"</strong
+              >
+              Kancil ran away quickly into the forest. The crocodiles were very
+              angry, but it was too late. Kancil was safe!
+            </p>
+          </div>
+          <!-- Questions -->
+          <div class="bg-white/95 rounded-3xl p-6 shadow-xl">
+            <h3
+              class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2"
+            >
+              <span class="text-2xl">🏆</span> Final questions:
+            </h3>
+            <!-- Question 1 -->
+            <div class="mb-6">
+              <p class="text-lg font-semibold text-gray-700 mb-3">
+                1. How did the story end? (Resolution)
+              </p>
+              <div class="grid grid-cols-1 gap-3" id="q6-options">
+                <button
+                  onclick="selectAnswer('q6', 'A', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  A. The crocodile ate Kancil.
+                </button>
+                <button
+                  onclick="selectAnswer('q6', 'B', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  B. Kancil escaped safely by tricking the crocodiles.
+                </button>
+                <button
+                  onclick="selectAnswer('q6', 'C', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  C. Kancil and the crocodile became friends.
+                </button>
+              </div>
+            </div>
+            <!-- Question 2 -->
+            <div class="mb-6">
+              <p class="text-lg font-semibold text-gray-700 mb-3">
+                2. What is the moral value of this story?
+              </p>
+              <div class="grid grid-cols-1 gap-3" id="q7-options">
+                <button
+                  onclick="selectAnswer('q7', 'A', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  A. Big animals always win.
+                </button>
+                <button
+                  onclick="selectAnswer('q7', 'B', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  B. Being clever is more important than being strong.
+                </button>
+                <button
+                  onclick="selectAnswer('q7', 'C', this)"
+                  class="option-btn p-4 bg-gray-50 border-3 border-gray-200 rounded-xl text-left hover:bg-blue-50 hover:border-blue-300 text-lg font-medium"
+                >
+                  C. Never help others.
+                </button>
+              </div>
+            </div>
+            <!-- Feedback Area -->
+            <div id="room4-feedback" class="hidden"></div>
+            <!-- Check Button -->
+            <button
+              id="room4-check-btn"
+              onclick="checkRoom4()"
+              class="btn-game w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xl font-bold py-4 rounded-2xl shadow-lg"
+            >
+              🔍 CHECK ANSWERS
+            </button>
+            <!-- Escape Button (Hidden initially) -->
+            <button
+              id="escape-btn"
+              onclick="showScreen('final-screen')"
+              class="hidden btn-game w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xl font-bold py-4 rounded-2xl shadow-lg mt-4 glow"
+            >
+              🎉 ESCAPE FROM THE BOOK! 🎉
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- FINAL SCREEN: ESCAPE SUCCESS -->
+      <div
+        id="final-screen"
+        class="screen flex-col items-center justify-center min-h-full p-4 text-center"
+      >
+        <div class="max-w-2xl mx-auto">
+          <!-- Success Animation Container -->
+          <div id="success-animation" class="relative">
+            <div class="text-8xl mb-6 bounce">🏆</div>
+          </div>
+          <!-- Success Message -->
+          <h1
+            class="text-4xl md:text-5xl font-bold text-yellow-300 mb-4 drop-shadow-lg"
+          >
+            🎉 CONGRATULATIONS! 🎉
+          </h1>
+          <h2 class="text-2xl md:text-3xl font-bold text-white mb-8">
+            You Escaped from the Story World!
+          </h2>
+          <!-- Achievement Box -->
+          <div class="bg-white/95 rounded-3xl p-6 md:p-8 shadow-2xl mb-8">
+            <div class="text-6xl mb-4">📖→🚪→🌟</div>
+            <h3 class="text-2xl font-bold text-purple-700 mb-4">
+              Your Achievement
+            </h3>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-blue-50 p-4 rounded-xl">
+                <div class="text-3xl mb-2">🏠</div>
+                <p class="font-bold text-blue-700">4 Rooms</p>
+                <p class="text-blue-600">Completed!</p>
+              </div>
+              <div class="bg-green-50 p-4 rounded-xl">
+                <div class="text-3xl mb-2">🔑</div>
+                <p class="font-bold text-green-700">All Keys</p>
+                <p class="text-green-600">Collected!</p>
+              </div>
+            </div>
+            <div
+              class="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-xl mb-4"
+            >
+              <h4 class="font-bold text-purple-700 mb-2">
+                📚 You learned about Narrative Text:
+              </h4>
+              <ul class="text-left text-gray-700 space-y-1">
+                <li>✅ Orientation (Characters &amp; Setting)</li>
+                <li>✅ Sequence of Events</li>
+                <li>✅ Complication (Problem)</li>
+                <li>✅ Resolution &amp; Moral Value</li>
+              </ul>
+            </div>
+            <div id="score-display" class="text-2xl font-bold text-purple-600">
+              <!-- Score will be displayed here -->
+            </div>
+          </div>
+          <!-- Restart Button -->
+          <button
+            onclick="restartGame()"
+            class="btn-game bg-gradient-to-r from-green-400 to-emerald-500 text-white text-2xl font-bold py-5 px-12 rounded-full shadow-lg hover:shadow-xl"
+          >
+            🔄 PLAY AGAIN
+          </button>
+        </div>
+      </div>
+    </div>
+    <script>
+      // ==================== GAME STATE ====================
+      let gameState = {
+        currentRoom: 0,
+        answers: {
+          q1: null,
+          q2: null,
+          q3: null,
+          q4: null,
+          q5: null,
+          q6: null,
+          q7: null,
+        },
+        sequenceOrder: [],
+        roomsCompleted: [false, false, false, false],
+        score: 0,
+        totalQuestions: 7,
+      };
+
+      // Correct answers
+      const correctAnswers = {
+        q1: "B", // Kancil the mouse deer
+        q2: "B", // In a forest near a river
+        q3: "FALSE", // The problem was NOT that Kancil was lost
+        q4: "B", // The crocodile wanted to eat Kancil
+        q5: "TRUE", // Kancil used his brain
+        q6: "B", // Kancil escaped by tricking crocodiles
+        q7: "B", // Being clever is more important than being strong
+      };
+
+      // Correct sequence: A (crocodile wanted to eat) -> B (asked to line up) -> C (jumped on backs) -> D (escaped)
+      const correctSequence = ["A", "B", "C", "D"];
+
+      // ==================== CONFIG FOR ELEMENT SDK ====================
+      const defaultConfig = {
+        game_title: "Escape Room: Trapped in the Narrative World",
+        intro_text:
+          "You are trapped inside a story book. To escape, you must understand the narrative text.",
+        background_color: "#312e81",
+        accent_color: "#f59e0b",
+        text_color: "#1f2937",
+        primary_action_color: "#8b5cf6",
+        secondary_action_color: "#10b981",
+        font_family: "Fredoka",
+        font_size: 16,
+      };
+
+      let config = { ...defaultConfig };
+
+      // ==================== ELEMENT SDK INITIALIZATION ====================
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange: async (newConfig) => {
+            config = { ...defaultConfig, ...newConfig };
+            applyConfig();
+          },
+          mapToCapabilities: (cfg) => ({
+            recolorables: [
+              {
+                get: () =>
+                  cfg.background_color || defaultConfig.background_color,
+                set: (v) => {
+                  cfg.background_color = v;
+                  window.elementSdk.setConfig({ background_color: v });
+                },
+              },
+              {
+                get: () => cfg.accent_color || defaultConfig.accent_color,
+                set: (v) => {
+                  cfg.accent_color = v;
+                  window.elementSdk.setConfig({ accent_color: v });
+                },
+              },
+              {
+                get: () => cfg.text_color || defaultConfig.text_color,
+                set: (v) => {
+                  cfg.text_color = v;
+                  window.elementSdk.setConfig({ text_color: v });
+                },
+              },
+              {
+                get: () =>
+                  cfg.primary_action_color ||
+                  defaultConfig.primary_action_color,
+                set: (v) => {
+                  cfg.primary_action_color = v;
+                  window.elementSdk.setConfig({ primary_action_color: v });
+                },
+              },
+              {
+                get: () =>
+                  cfg.secondary_action_color ||
+                  defaultConfig.secondary_action_color,
+                set: (v) => {
+                  cfg.secondary_action_color = v;
+                  window.elementSdk.setConfig({ secondary_action_color: v });
+                },
+              },
+            ],
+            borderables: [],
+            fontEditable: {
+              get: () => cfg.font_family || defaultConfig.font_family,
+              set: (v) => {
+                cfg.font_family = v;
+                window.elementSdk.setConfig({ font_family: v });
+              },
+            },
+            fontSizeable: {
+              get: () => cfg.font_size || defaultConfig.font_size,
+              set: (v) => {
+                cfg.font_size = v;
+                window.elementSdk.setConfig({ font_size: v });
+              },
+            },
+          }),
+          mapToEditPanelValues: (cfg) =>
+            new Map([
+              ["game_title", cfg.game_title || defaultConfig.game_title],
+              ["intro_text", cfg.intro_text || defaultConfig.intro_text],
+            ]),
+        });
+      }
+
+      function applyConfig() {
+        const customFont = config.font_family || defaultConfig.font_family;
+        const baseFontStack = "'Comic Neue', cursive, sans-serif";
+        const baseSize = config.font_size || defaultConfig.font_size;
+
+        document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+        document.body.style.fontSize = `${baseSize}px`;
+
+        // Apply colors to body background
+        document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color}, #581c87, #be185d)`;
+      }
+
+      // ==================== SCREEN NAVIGATION ====================
+      function showScreen(screenId) {
+        // Hide all screens
+        document.querySelectorAll(".screen").forEach((screen) => {
+          screen.classList.remove("active");
+        });
+
+        // Show target screen
+        const targetScreen = document.getElementById(screenId);
+        if (targetScreen) {
+          targetScreen.classList.add("active");
+          // Scroll to top
+          window.scrollTo(0, 0);
+        }
+
+        // Trigger celebration on final screen
+        if (screenId === "final-screen") {
+          setTimeout(createCelebration, 300);
+          displayFinalScore();
+        }
+      }
+
+      function startGame() {
+        gameState.currentRoom = 1;
+        showScreen("room1-screen");
+      }
+
+      function restartGame() {
+        // Reset game state
+        gameState = {
+          currentRoom: 0,
+          answers: {
+            q1: null,
+            q2: null,
+            q3: null,
+            q4: null,
+            q5: null,
+            q6: null,
+            q7: null,
+          },
+          sequenceOrder: [],
+          roomsCompleted: [false, false, false, false],
+          score: 0,
+          totalQuestions: 7,
+        };
+
+        // Reset UI
+        resetAllOptions();
+        resetSequence();
+        hideAllFeedback();
+        resetButtons();
+
+        showScreen("start-screen");
+      }
+
+      // ==================== ANSWER SELECTION ====================
+      function selectAnswer(questionId, answer, button) {
+        // Don't allow changes after room is completed
+        const roomNum = getRoomForQuestion(questionId);
+        if (gameState.roomsCompleted[roomNum - 1]) return;
+
+        gameState.answers[questionId] = answer;
+
+        // Visual feedback
+        const container = document.getElementById(`${questionId}-options`);
+        container.querySelectorAll(".option-btn").forEach((btn) => {
+          btn.classList.remove("selected");
+          btn.style.borderColor = "";
+          btn.style.background = "";
+        });
+
+        button.classList.add("selected");
+        button.style.borderColor = "#8b5cf6";
+        button.style.background = "linear-gradient(135deg, #ede9fe, #ddd6fe)";
+      }
+
+      function getRoomForQuestion(questionId) {
+        if (["q1", "q2"].includes(questionId)) return 1;
+        if (["q3", "q4", "q5"].includes(questionId)) return 3;
+        if (["q6", "q7"].includes(questionId)) return 4;
+        return 0;
+      }
+
+      // ==================== SEQUENCE ROOM ====================
+      function selectSequence(element, eventId) {
+        if (gameState.roomsCompleted[1]) return; // Room 2 already completed
+
+        const index = gameState.sequenceOrder.indexOf(eventId);
+
+        if (index > -1) {
+          // Already selected - remove it
+          gameState.sequenceOrder.splice(index, 1);
+          element.classList.remove("selected");
+          element.querySelector(".sequence-number").textContent = "?";
+          element.querySelector(".sequence-number").style.background =
+            "#d1d5db";
+        } else if (gameState.sequenceOrder.length < 4) {
+          // Add to sequence
+          gameState.sequenceOrder.push(eventId);
+          element.classList.add("selected");
+          const num = gameState.sequenceOrder.length;
+          element.querySelector(".sequence-number").textContent = num;
+          element.querySelector(".sequence-number").style.background =
+            "linear-gradient(135deg, #8b5cf6, #6366f1)";
+          element.querySelector(".sequence-number").style.color = "white";
+        }
+
+        updateSequenceDisplay();
+      }
+
+      function updateSequenceDisplay() {
+        const display = document.getElementById("sequence-order");
+        if (gameState.sequenceOrder.length === 0) {
+          display.innerHTML =
+            '<span class="text-gray-400">Click the events above...</span>';
+        } else {
+          display.innerHTML = gameState.sequenceOrder
+            .map(
+              (id, i) =>
+                `<span class="inline-flex items-center justify-center w-10 h-10 rounded-full text-white font-bold" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">${i + 1}</span>`,
+            )
+            .join('<span class="text-purple-400">→</span>');
+        }
+      }
+
+      function resetSequence() {
+        gameState.sequenceOrder = [];
+        document.querySelectorAll(".sequence-item").forEach((item) => {
+          item.classList.remove("selected");
+          const numSpan = item.querySelector(".sequence-number");
+          numSpan.textContent = "?";
+          numSpan.style.background = "#d1d5db";
+          numSpan.style.color = "";
+        });
+        updateSequenceDisplay();
+      }
+
+      // ==================== ROOM CHECKING ====================
+      function checkRoom1() {
+        const q1Correct = gameState.answers.q1 === correctAnswers.q1;
+        const q2Correct = gameState.answers.q2 === correctAnswers.q2;
+
+        const feedbackDiv = document.getElementById("room1-feedback");
+        feedbackDiv.classList.remove("hidden");
+
+        // Show individual answer feedback
+        showAnswerFeedback("q1", q1Correct);
+        showAnswerFeedback("q2", q2Correct);
+
+        if (q1Correct && q2Correct) {
+          gameState.score += 2;
+          gameState.roomsCompleted[0] = true;
+
+          feedbackDiv.innerHTML = `
+                    <div class="feedback-box bg-green-100 border-2 border-green-400 rounded-2xl p-4 mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-4xl key-float">🔑</span>
+                            <div>
+                                <p class="text-green-700 font-bold text-xl">Excellent! Key Unlocked!</p>
+                                <p class="text-green-600">You found the characters and setting correctly!</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+          document.getElementById("room1-check-btn").classList.add("hidden");
+          document.getElementById("room1-next-btn").classList.remove("hidden");
+
+          createKeyAnimation();
+        } else {
+          let hint = "";
+          if (!q1Correct)
+            hint +=
+              '💡 Hint: Look for the animal that is described as "clever".<br>';
+          if (!q2Correct)
+            hint += "💡 Hint: The story mentions a specific place with water.";
+
+          feedbackDiv.innerHTML = `
+                    <div class="feedback-box bg-red-100 border-2 border-red-300 rounded-2xl p-4 mb-4 shake">
+                        <p class="text-red-600 font-bold text-lg mb-2">❌ Not quite right!</p>
+                        <p class="text-red-500">${hint}</p>
+                        <p class="text-gray-600 mt-2">Try again! Read the story carefully. 📖</p>
+                    </div>
+                `;
+        }
+      }
+
+      function checkRoom2() {
+        const isCorrect =
+          JSON.stringify(gameState.sequenceOrder) ===
+          JSON.stringify(correctSequence);
+
+        const feedbackDiv = document.getElementById("room2-feedback");
+        feedbackDiv.classList.remove("hidden");
+
+        if (isCorrect) {
+          gameState.score += 1;
+          gameState.roomsCompleted[1] = true;
+
+          feedbackDiv.innerHTML = `
+                    <div class="feedback-box bg-green-100 border-2 border-green-400 rounded-2xl p-4 mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-4xl key-float">🔑</span>
+                            <div>
+                                <p class="text-green-700 font-bold text-xl">Perfect! Key Unlocked!</p>
+                                <p class="text-green-600">You arranged the events in the correct order!</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+          document.getElementById("room2-check-btn").classList.add("hidden");
+          document.getElementById("room2-next-btn").classList.remove("hidden");
+
+          // Mark items as correct
+          document.querySelectorAll(".sequence-item").forEach((item) => {
+            item.style.background = "linear-gradient(135deg, #d1fae5, #a7f3d0)";
+            item.style.borderColor = "#10b981";
+          });
+
+          createKeyAnimation();
+        } else {
+          if (gameState.sequenceOrder.length < 4) {
+            feedbackDiv.innerHTML = `
+                        <div class="feedback-box bg-yellow-100 border-2 border-yellow-300 rounded-2xl p-4 mb-4 shake">
+                            <p class="text-yellow-700 font-bold text-lg">⚠️ Select all 4 events first!</p>
+                            <p class="text-yellow-600">Click on each event in the order they happened.</p>
+                        </div>
+                    `;
+          } else {
+            feedbackDiv.innerHTML = `
+                        <div class="feedback-box bg-red-100 border-2 border-red-300 rounded-2xl p-4 mb-4 shake">
+                            <p class="text-red-600 font-bold text-lg mb-2">❌ Not the right order!</p>
+                            <p class="text-red-500">💡 Hint: What happened FIRST? The crocodile's threat!</p>
+                            <p class="text-gray-600 mt-2">Click RESET and try again! 🔄</p>
+                        </div>
+                    `;
+          }
+        }
+      }
+
+      function checkRoom3() {
+        const q3Correct = gameState.answers.q3 === correctAnswers.q3;
+        const q4Correct = gameState.answers.q4 === correctAnswers.q4;
+        const q5Correct = gameState.answers.q5 === correctAnswers.q5;
+
+        const feedbackDiv = document.getElementById("room3-feedback");
+        feedbackDiv.classList.remove("hidden");
+
+        showAnswerFeedback("q3", q3Correct);
+        showAnswerFeedback("q4", q4Correct);
+        showAnswerFeedback("q5", q5Correct);
+
+        if (q3Correct && q4Correct && q5Correct) {
+          gameState.score += 3;
+          gameState.roomsCompleted[2] = true;
+
+          feedbackDiv.innerHTML = `
+                    <div class="feedback-box bg-green-100 border-2 border-green-400 rounded-2xl p-4 mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-4xl key-float">🔑</span>
+                            <div>
+                                <p class="text-green-700 font-bold text-xl">Amazing! Key Unlocked!</p>
+                                <p class="text-green-600">You correctly identified the complication!</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+          document.getElementById("room3-check-btn").classList.add("hidden");
+          document.getElementById("room3-next-btn").classList.remove("hidden");
+
+          createKeyAnimation();
+        } else {
+          let hints = [];
+          if (!q3Correct)
+            hints.push("The story is about danger, not getting lost.");
+          if (!q4Correct) hints.push("Think about what made Kancil scared.");
+          if (!q5Correct)
+            hints.push(
+              "Kancil tricked the crocodiles - that requires thinking!",
+            );
+
+          feedbackDiv.innerHTML = `
+                    <div class="feedback-box bg-red-100 border-2 border-red-300 rounded-2xl p-4 mb-4 shake">
+                        <p class="text-red-600 font-bold text-lg mb-2">❌ Some answers are wrong!</p>
+                        <p class="text-red-500">💡 Hints:<br>${hints.join("<br>")}</p>
+                        <p class="text-gray-600 mt-2">Try again! 💪</p>
+                    </div>
+                `;
+        }
+      }
+
+      function checkRoom4() {
+        const q6Correct = gameState.answers.q6 === correctAnswers.q6;
+        const q7Correct = gameState.answers.q7 === correctAnswers.q7;
+
+        const feedbackDiv = document.getElementById("room4-feedback");
+        feedbackDiv.classList.remove("hidden");
+
+        showAnswerFeedback("q6", q6Correct);
+        showAnswerFeedback("q7", q7Correct);
+
+        if (q6Correct && q7Correct) {
+          gameState.score += 2;
+          gameState.roomsCompleted[3] = true;
+
+          feedbackDiv.innerHTML = `
+                    <div class="feedback-box bg-gradient-to-r from-yellow-100 to-orange-100 border-2 border-yellow-400 rounded-2xl p-4 mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-4xl bounce">🏆</span>
+                            <div>
+                                <p class="text-yellow-700 font-bold text-xl">FANTASTIC! All Keys Collected!</p>
+                                <p class="text-yellow-600">You are ready to ESCAPE!</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+          document.getElementById("room4-check-btn").classList.add("hidden");
+          document.getElementById("escape-btn").classList.remove("hidden");
+
+          createKeyAnimation();
+        } else {
+          let hints = [];
+          if (!q6Correct) hints.push("How did Kancil cross the river?");
+          if (!q7Correct) hints.push("What quality helped Kancil survive?");
+
+          feedbackDiv.innerHTML = `
+                    <div class="feedback-box bg-red-100 border-2 border-red-300 rounded-2xl p-4 mb-4 shake">
+                        <p class="text-red-600 font-bold text-lg mb-2">❌ Almost there!</p>
+                        <p class="text-red-500">💡 Hints:<br>${hints.join("<br>")}</p>
+                        <p class="text-gray-600 mt-2">You're so close! Try again! 🎯</p>
+                    </div>
+                `;
+        }
+      }
+
+      function showAnswerFeedback(questionId, isCorrect) {
+        const container = document.getElementById(`${questionId}-options`);
+        if (!container) return;
+
+        container.querySelectorAll(".option-btn").forEach((btn) => {
+          if (btn.classList.contains("selected")) {
+            if (isCorrect) {
+              btn.classList.add("correct");
+            } else {
+              btn.classList.add("wrong");
+            }
+          }
+        });
+      }
+
+      // ==================== ANIMATIONS ====================
+      function createKeyAnimation() {
+        const key = document.createElement("div");
+        key.innerHTML = "🔑";
+        key.style.cssText = `
+                position: fixed;
+                font-size: 60px;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+                animation: keyFloat 1s ease-out forwards;
+            `;
+        document.body.appendChild(key);
+        setTimeout(() => key.remove(), 1500);
+      }
+
+      function createCelebration() {
+        const colors = [
+          "#ff6b6b",
+          "#4ecdc4",
+          "#45b7d1",
+          "#f7dc6f",
+          "#bb8fce",
+          "#85c1e9",
+        ];
+        const emojis = ["🎉", "⭐", "🌟", "✨", "🎊", "🏆"];
+
+        // Create confetti
+        for (let i = 0; i < 30; i++) {
+          setTimeout(() => {
+            const confetti = document.createElement("div");
+            confetti.className = "confetti-piece";
+            confetti.style.cssText = `
+                        left: ${Math.random() * 100}%;
+                        top: -20px;
+                        background: ${colors[Math.floor(Math.random() * colors.length)]};
+                        border-radius: ${Math.random() > 0.5 ? "50%" : "0"};
+                        animation-duration: ${2 + Math.random() * 2}s;
+                        animation-delay: ${Math.random() * 0.5}s;
+                    `;
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 4000);
+          }, i * 50);
+        }
+
+        // Create star bursts
+        for (let i = 0; i < 10; i++) {
+          setTimeout(() => {
+            const star = document.createElement("div");
+            star.className = "star-burst";
+            star.textContent =
+              emojis[Math.floor(Math.random() * emojis.length)];
+            star.style.cssText = `
+                        left: ${10 + Math.random() * 80}%;
+                        top: ${10 + Math.random() * 60}%;
+                    `;
+            document.body.appendChild(star);
+            setTimeout(() => star.remove(), 1500);
+          }, i * 200);
+        }
+      }
+
+      // ==================== UTILITY FUNCTIONS ====================
+      function resetAllOptions() {
+        document.querySelectorAll(".option-btn").forEach((btn) => {
+          btn.classList.remove("selected", "correct", "wrong");
+          btn.style.borderColor = "";
+          btn.style.background = "";
+        });
+      }
+
+      function hideAllFeedback() {
+        [
+          "room1-feedback",
+          "room2-feedback",
+          "room3-feedback",
+          "room4-feedback",
+        ].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.add("hidden");
+            el.innerHTML = "";
+          }
+        });
+      }
+
+      function resetButtons() {
+        // Show check buttons, hide next buttons
+        document.getElementById("room1-check-btn").classList.remove("hidden");
+        document.getElementById("room1-next-btn").classList.add("hidden");
+        document.getElementById("room2-check-btn").classList.remove("hidden");
+        document.getElementById("room2-next-btn").classList.add("hidden");
+        document.getElementById("room3-check-btn").classList.remove("hidden");
+        document.getElementById("room3-next-btn").classList.add("hidden");
+        document.getElementById("room4-check-btn").classList.remove("hidden");
+        document.getElementById("escape-btn").classList.add("hidden");
+
+        // Reset sequence items
+        document.querySelectorAll(".sequence-item").forEach((item) => {
+          item.style.background = "";
+          item.style.borderColor = "";
+        });
+      }
+
+      function displayFinalScore() {
+        const scoreDisplay = document.getElementById("score-display");
+        const maxScore = 8; // 2 + 1 + 3 + 2
+        const percentage = Math.round((gameState.score / maxScore) * 100);
+
+        let message = "";
+        let emoji = "";
+
+        if (percentage === 100) {
+          message = "PERFECT SCORE!";
+          emoji = "🌟";
+        } else if (percentage >= 80) {
+          message = "Excellent work!";
+          emoji = "🏆";
+        } else if (percentage >= 60) {
+          message = "Good job!";
+          emoji = "👏";
+        } else {
+          message = "Keep practicing!";
+          emoji = "💪";
+        }
+
+        scoreDisplay.innerHTML = `
+                <div class="text-4xl mb-2">${emoji}</div>
+                <p class="text-3xl">${gameState.score}/${maxScore}</p>
+                <p class="text-lg text-gray-600">${message}</p>
+            `;
+      }
+
+      // ==================== INITIALIZATION ====================
+      applyConfig();
+    </script>
+    <script>
+      (function () {
+        function c() {
+          var b = a.contentDocument || a.contentWindow.document;
+          if (b) {
+            var d = b.createElement("script");
+            d.innerHTML =
+              "window.__CF$cv$params={r:'9c9f61d0017062b7',t:'MTc3MDQzMDU1NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+            b.getElementsByTagName("head")[0].appendChild(d);
+          }
+        }
+        if (document.body) {
+          var a = document.createElement("iframe");
+          a.height = 1;
+          a.width = 1;
+          a.style.position = "absolute";
+          a.style.top = 0;
+          a.style.left = 0;
+          a.style.border = "none";
+          a.style.visibility = "hidden";
+          document.body.appendChild(a);
+          if ("loading" !== document.readyState) c();
+          else if (window.addEventListener)
+            document.addEventListener("DOMContentLoaded", c);
+          else {
+            var e = document.onreadystatechange || function () {};
+            document.onreadystatechange = function (b) {
+              e(b);
+              "loading" !== document.readyState &&
+                ((document.onreadystatechange = e), c());
+            };
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>

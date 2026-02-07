@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Galactic Verb Relay - Past Tense Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap");
+
+      :root {
+        --space-bg: #050b18;
+      }
+
+      body {
+        background-color: var(--space-bg);
+        color: white;
+        font-family: "Rajdhani", sans-serif;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        background-image:
+          radial-gradient(
+            circle at 20% 30%,
+            rgba(0, 210, 255, 0.1) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 80% 70%,
+            rgba(255, 65, 108, 0.1) 0%,
+            transparent 40%
+          );
+      }
+
+      .font-orbitron {
+        font-family: "Orbitron", sans-serif;
+      }
+
+      .game-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        max-height: 100vh;
+        justify-content: space-between;
+        padding: 1.5rem;
+      }
+
+      .planet-btn {
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        touch-action: manipulation;
+        width: 18vh;
+        height: 18vh;
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .planet-btn:active {
+        transform: scale(0.9);
+      }
+
+      .regular-planet {
+        background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe);
+        box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+      }
+
+      .irregular-planet {
+        background: radial-gradient(circle at 30% 30%, #f093fb, #f5576c);
+        box-shadow: 0 0 20px rgba(245, 87, 108, 0.4);
+      }
+
+      #word-container {
+        padding: 2vh 3vw;
+        margin: 1.5vh 0;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      #current-word {
+        font-size: clamp(2.5rem, 8vh, 5rem);
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        transition: transform 0.2s ease;
+      }
+
+      .timer-low {
+        color: #ff416c;
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        opacity: 0.5;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      /* Efek Jawaban Benar yang Lebih Nyaman */
+      .correct-celebration {
+        border-color: #22c55e !important;
+        box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+        background: rgba(34, 197, 94, 0.1) !important;
+      }
+
+      .correct-text {
+        color: #4ade80 !important;
+        transform: scale(1.05);
+      }
+
+      .shake {
+        animation: shake-anim 0.4s ease-in-out;
+      }
+      @keyframes shake-anim {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-10px);
+        }
+        75% {
+          transform: translateX(10px);
+        }
+      }
+
+      /* Partikel Kecil untuk Jawaban Benar */
+      .particle {
+        position: absolute;
+        pointer-events: none;
+        background: #4ade80;
+        border-radius: 50%;
+        animation: particle-fade 0.6s ease-out forwards;
+      }
+
+      @keyframes particle-fade {
+        0% {
+          transform: translate(0, 0) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--tx), var(--ty)) scale(0);
+          opacity: 0;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .game-wrapper {
+          padding: 2rem 5rem;
+        }
+        #word-container {
+          min-width: 400px;
+        }
+      }
+
+      @media (max-height: 500px) {
+        .game-wrapper {
+          padding: 0.5rem 1rem;
+        }
+        #current-word {
+          font-size: 3.5vh;
+        }
+        .planet-btn {
+          width: 14vh;
+          height: 14vh;
+        }
+        h1 {
+          font-size: 1.25rem !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stars-container"></div>
+
+    <div class="game-wrapper z-10">
+      <header
+        class="flex justify-between items-center w-full max-w-5xl mx-auto"
+      >
+        <div
+          class="score-box border-2 border-cyan-400 px-4 py-2 rounded-lg bg-black/40 backdrop-blur-md text-center min-w-[100px]"
+        >
+          <p class="text-[10px] uppercase tracking-tighter text-cyan-300">
+            Team Alpha
+          </p>
+          <p id="score-alpha" class="text-2xl font-bold font-orbitron">0</p>
+        </div>
+
+        <div class="text-center">
+          <h1
+            class="text-xl md:text-2xl font-orbitron font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-pink-500"
+          >
+            GALACTIC VERB RELAY
+          </h1>
+          <p
+            class="text-[10px] md:text-xs text-blue-300 font-bold uppercase tracking-[0.2em]"
+          >
+            Past Tense Edition
+          </p>
+          <div
+            id="turn-badge"
+            class="mt-1 px-4 py-0.5 rounded-full border border-cyan-500/50 bg-cyan-500/10 text-cyan-400 text-[10px] font-bold uppercase tracking-widest inline-block"
+          >
+            Giliran: <span id="current-team-name">Team Alpha</span>
+          </div>
+        </div>
+
+        <div
+          class="score-box border-2 border-pink-500 px-4 py-2 rounded-lg bg-black/40 backdrop-blur-md text-center min-w-[100px]"
+        >
+          <p class="text-[10px] uppercase tracking-tighter text-pink-400">
+            Team Beta
+          </p>
+          <p id="score-beta" class="text-2xl font-bold font-orbitron">0</p>
+        </div>
+      </header>
+
+      <main class="flex flex-col items-center justify-center flex-grow">
+        <div
+          id="timer-display"
+          class="text-5xl md:text-6xl font-orbitron font-bold mb-2"
+        >
+          01:00
+        </div>
+
+        <div id="word-container" class="flex items-center justify-center">
+          <h2
+            id="current-word"
+            class="font-bold font-orbitron tracking-tight text-white uppercase"
+          >
+            SIAP?
+          </h2>
+        </div>
+
+        <div class="flex gap-12 md:gap-24 mt-4">
+          <div class="flex flex-col items-center gap-2">
+            <button
+              id="btn-regular"
+              onclick="handleChoice('regular')"
+              class="planet-btn regular-planet"
+            ></button>
+            <span
+              class="text-sm md:text-lg font-bold tracking-widest text-cyan-300 font-orbitron"
+              >REGULAR</span
+            >
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <button
+              id="btn-irregular"
+              onclick="handleChoice('irregular')"
+              class="planet-btn irregular-planet"
+            ></button>
+            <span
+              class="text-sm md:text-lg font-bold tracking-widest text-pink-400 font-orbitron"
+              >IRREGULAR</span
+            >
+          </div>
+        </div>
+      </main>
+
+      <footer class="flex justify-center">
+        <button
+          id="main-action-btn"
+          onclick="startMission()"
+          class="bg-gradient-to-r from-cyan-500 to-blue-600 px-10 py-3 rounded-full text-xl font-bold font-orbitron hover:scale-105 active:scale-95 transition-all shadow-lg"
+        >
+          MULAI MISI
+        </button>
+      </footer>
+    </div>
+
+    <div
+      id="overlay"
+      class="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center hidden p-6 text-center"
+    >
+      <h2
+        id="overlay-title"
+        class="text-4xl md:text-6xl font-orbitron font-bold mb-4"
+      >
+        MISI SELESAI
+      </h2>
+      <p
+        id="overlay-msg"
+        class="text-lg md:text-2xl mb-8 text-gray-300 max-w-2xl whitespace-pre-line font-rajdhani"
+      ></p>
+      <button
+        id="overlay-btn"
+        onclick="nextPhase()"
+        class="bg-white text-black px-12 py-3 rounded-full text-xl font-bold font-orbitron hover:bg-cyan-400 transition-colors"
+      >
+        LANJUTKAN
+      </button>
+    </div>
+
+    <script>
+      const verbs = {
+        regular: [
+          "Walked",
+          "Talked",
+          "Cooked",
+          "Played",
+          "Cleaned",
+          "Watched",
+          "Listened",
+          "Jumped",
+          "Danced",
+          "Visited",
+          "Helped",
+          "Worked",
+          "Asked",
+          "Called",
+          "Smiled",
+          "Laughed",
+          "Opened",
+          "Closed",
+          "Waited",
+          "Painted",
+          "Fixed",
+          "Looked",
+          "Needed",
+          "Wanted",
+          "Stayed",
+          "Started",
+          "Finished",
+          "Shared",
+          "Followed",
+          "Enjoyed",
+          "Learned",
+          "Loved",
+          "Moved",
+          "Saved",
+          "Typed",
+          "Used",
+          "Arrived",
+          "Accepted",
+          "Agreed",
+          "Checked",
+          "Decided",
+          "Explained",
+          "Imagined",
+          "Offered",
+          "Planned",
+          "Stopped",
+        ],
+        irregular: [
+          "Went",
+          "Ate",
+          "Slept",
+          "Ran",
+          "Sang",
+          "Drank",
+          "Wrote",
+          "Read",
+          "Bought",
+          "Sold",
+          "Gave",
+          "Took",
+          "Brought",
+          "Made",
+          "Thought",
+          "Saw",
+          "Spoke",
+          "Flew",
+          "Won",
+          "Lost",
+          "Came",
+          "Did",
+          "Had",
+          "Knew",
+          "Said",
+          "Told",
+          "Built",
+          "Found",
+          "Kept",
+          "Left",
+          "Met",
+          "Paid",
+          "Sent",
+          "Spent",
+          "Swam",
+          "Woke",
+          "Began",
+          "Broke",
+          "Chose",
+          "Drove",
+          "Fell",
+          "Forgot",
+          "Froze",
+          "Grew",
+          "Held",
+          "Rode",
+          "Stole",
+          "Taught",
+          "Understood",
+        ],
+      };
+
+      let currentTurn = "ALPHA";
+      let scores = { ALPHA: 0, BETA: 0 };
+      let timer = null;
+      let timeLeft = 60;
+      let gameActive = false;
+      let currentWordObj = null;
+      let sessionUsedWords = new Set();
+
+      function createStars() {
+        const container = document.getElementById("stars-container");
+        container.innerHTML = "";
+        const count = 80;
+        for (let i = 0; i < count; i++) {
+          const star = document.createElement("div");
+          star.className = "star";
+          const size = Math.random() * 2;
+          star.style.width = size + "px";
+          star.style.height = size + "px";
+          star.style.left = Math.random() * 100 + "vw";
+          star.style.top = Math.random() * 100 + "vh";
+          star.style.animation = `twinkle ${Math.random() * 3 + 2}s infinite ease-in-out`;
+          container.appendChild(star);
+        }
+      }
+
+      function createSuccessParticles() {
+        const container = document.getElementById("word-container");
+        const rect = container.getBoundingClientRect();
+        for (let i = 0; i < 15; i++) {
+          const p = document.createElement("div");
+          p.className = "particle";
+          const size = Math.random() * 6 + 2;
+          p.style.width = size + "px";
+          p.style.height = size + "px";
+          p.style.left = "50%";
+          p.style.top = "50%";
+
+          const angle = Math.random() * Math.PI * 2;
+          const dist = Math.random() * 100 + 50;
+          p.style.setProperty("--tx", Math.cos(angle) * dist + "px");
+          p.style.setProperty("--ty", Math.sin(angle) * dist + "px");
+
+          container.appendChild(p);
+          setTimeout(() => p.remove(), 600);
+        }
+      }
+
+      function getRandomWord() {
+        const types = ["regular", "irregular"];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const wordList = verbs[type];
+        let word = wordList[Math.floor(Math.random() * wordList.length)];
+
+        let attempts = 0;
+        while (sessionUsedWords.has(word) && attempts < 40) {
+          word = wordList[Math.floor(Math.random() * wordList.length)];
+          attempts++;
+        }
+
+        sessionUsedWords.add(word);
+        return { text: word, type: type };
+      }
+
+      function startMission() {
+        if (gameActive) return;
+        gameActive = true;
+        timeLeft = 60;
+        document.getElementById("main-action-btn").style.visibility = "hidden";
+        nextWord();
+
+        updateTimerDisplay();
+        timer = setInterval(() => {
+          timeLeft--;
+          updateTimerDisplay();
+          if (timeLeft <= 0) endTurn();
+        }, 1000);
+      }
+
+      function updateTimerDisplay() {
+        const display = document.getElementById("timer-display");
+        display.innerText = `00:${timeLeft.toString().padStart(2, "0")}`;
+        if (timeLeft <= 10) display.classList.add("timer-low");
+        else display.classList.remove("timer-low");
+      }
+
+      function nextWord() {
+        currentWordObj = getRandomWord();
+        document.getElementById("current-word").innerText = currentWordObj.text;
+      }
+
+      function handleChoice(choice) {
+        if (!gameActive) {
+          document.getElementById("main-action-btn").classList.add("shake");
+          setTimeout(
+            () =>
+              document
+                .getElementById("main-action-btn")
+                .classList.remove("shake"),
+            400,
+          );
+          return;
+        }
+
+        const wordBox = document.getElementById("word-container");
+        const wordText = document.getElementById("current-word");
+
+        if (choice === currentWordObj.type) {
+          scores[currentTurn] += 10;
+
+          // Efek visual lembut
+          wordBox.classList.add("correct-celebration");
+          wordText.classList.add("correct-text");
+          createSuccessParticles();
+
+          setTimeout(() => {
+            wordBox.classList.remove("correct-celebration");
+            wordText.classList.remove("correct-text");
+            nextWord();
+          }, 400);
+        } else {
+          scores[currentTurn] = Math.max(0, scores[currentTurn] - 5);
+          wordBox.classList.add("shake");
+          wordBox.style.borderColor = "#ff416c";
+
+          setTimeout(() => {
+            wordBox.classList.remove("shake");
+            wordBox.style.borderColor = "rgba(255, 255, 255, 0.1)";
+            nextWord();
+          }, 400);
+        }
+        updateScores();
+      }
+
+      function updateScores() {
+        document.getElementById("score-alpha").innerText = scores.ALPHA;
+        document.getElementById("score-beta").innerText = scores.BETA;
+      }
+
+      function endTurn() {
+        clearInterval(timer);
+        gameActive = false;
+        const overlay = document.getElementById("overlay");
+        const title = document.getElementById("overlay-title");
+        const msg = document.getElementById("overlay-msg");
+        const btn = document.getElementById("overlay-btn");
+
+        overlay.classList.remove("hidden");
+
+        if (currentTurn === "ALPHA") {
+          title.innerText = "GILIRAN ALPHA SELESAI";
+          title.style.color = "#00d2ff";
+          msg.innerText = `Skor Team Alpha: ${scores.ALPHA}\n\nTeam Beta, giliran Anda!`;
+          btn.innerText = "LANJUT KE TEAM BETA";
+        } else {
+          title.innerText = "MISI SELESAI";
+          title.style.color = "#fff";
+          let result =
+            scores.ALPHA > scores.BETA
+              ? "TEAM ALPHA MENANG!"
+              : scores.BETA > scores.ALPHA
+                ? "TEAM BETA MENANG!"
+                : "HASIL SERI!";
+          msg.innerText = `${result}\n\nSkor Akhir:\nAlpha: ${scores.ALPHA} | Beta: ${scores.BETA}`;
+          btn.innerText = "MAIN LAGI";
+        }
+      }
+
+      function nextPhase() {
+        if (currentTurn === "ALPHA") {
+          currentTurn = "BETA";
+          document.getElementById("overlay").classList.add("hidden");
+          document.getElementById("turn-badge").className =
+            "mt-1 px-4 py-0.5 rounded-full border border-pink-500/50 bg-pink-500/10 text-pink-400 text-[10px] font-bold uppercase tracking-widest inline-block";
+          document.getElementById("current-team-name").innerText = "Team Beta";
+          document.getElementById("timer-display").innerText = "01:00";
+          document.getElementById("current-word").innerText = "SIAP?";
+          document.getElementById("main-action-btn").style.visibility =
+            "visible";
+        } else {
+          location.reload();
+        }
+      }
+
+      window.addEventListener("resize", createStars);
+      window.addEventListener("DOMContentLoaded", createStars);
+    </script>
+  </body>
+</html>

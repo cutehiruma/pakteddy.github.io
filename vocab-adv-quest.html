@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Vocabulary Adventure Quest - 100 Words Edition</title>
+    <style>
+      /* --- CSS STYLES --- */
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #2c3e50;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        touch-action: none; /* Prevent browser gestures */
+      }
+
+      #game-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        max-width: 800px;
+        max-height: 100vh;
+        aspect-ratio: 16/9;
+        margin: auto;
+        background-color: #87ceeb; /* Sky Blue */
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* UI Overlays */
+      .ui-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* HUD */
+      #hud {
+        position: absolute;
+        top: 10px;
+        left: 15px;
+        right: 15px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 2px 2px 0 #000;
+        z-index: 10;
+      }
+
+      /* Screens */
+      .screen {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        border: 4px solid #333;
+        pointer-events: auto;
+        display: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        max-width: 80%;
+        width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .screen.active {
+        display: block;
+        animation: popIn 0.3s ease;
+      }
+
+      @keyframes popIn {
+        from {
+          transform: scale(0.8);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      h1 {
+        color: #4caf50;
+        margin-top: 0;
+        font-size: 2rem;
+      }
+      h2 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+      p {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 10px 0;
+      }
+
+      /* Input Field Style */
+      input[type="text"] {
+        padding: 12px;
+        font-size: 1.2rem;
+        border-radius: 8px;
+        border: 2px solid #4caf50;
+        margin-top: 15px;
+        width: 80%;
+        max-width: 300px;
+        text-align: center;
+        outline: none;
+      }
+
+      input[type="text"]:focus {
+        border-color: #2e7d32;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 1.2rem;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background 0.2s;
+        border-bottom: 5px solid #388e3c;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+      button:active {
+        transform: translateY(2px);
+        border-bottom: 3px solid #388e3c;
+      }
+
+      /* Quiz Modal */
+      #quiz-modal {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+        border: 4px solid #2196f3;
+        pointer-events: auto;
+        display: none;
+        box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      #quiz-modal.active {
+        display: block;
+      }
+
+      .quiz-word {
+        font-size: 2rem;
+        color: #2196f3;
+        margin: 10px 0;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      .options-grid {
+        display: grid;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .option-btn {
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 15px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        text-align: left;
+        transition: all 0.2s;
+      }
+
+      .option-btn:hover {
+        background-color: #e3f2fd;
+        border-color: #2196f3;
+      }
+
+      /* --- TOUCH CONTROLS --- */
+      #touch-controls {
+        position: absolute;
+        bottom: 20px;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        pointer-events: none;
+        display: none;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-sizing: border-box;
+        z-index: 20;
+      }
+
+      .control-group {
+        pointer-events: auto;
+        display: flex;
+        gap: 20px;
+      }
+
+      .touch-btn {
+        width: 65px;
+        height: 65px;
+        background: rgba(255, 255, 255, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        color: white;
+        font-size: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        user-select: none;
+        backdrop-filter: blur(4px);
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .touch-btn:active {
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0.95);
+      }
+
+      /* --- MOBILE LANDSCAPE TWEAKS --- */
+      @media (max-height: 500px) and (orientation: landscape) {
+        #touch-controls {
+          bottom: 40px;
+          padding: 0 40px;
+        }
+        .touch-btn {
+          width: 55px;
+          height: 55px;
+          font-size: 24px;
+        }
+        #quiz-modal {
+          padding: 10px 20px;
+          max-height: 85vh;
+          overflow-y: auto;
+        }
+        .quiz-word {
+          font-size: 1.5rem;
+          margin: 5px 0;
+        }
+        .options-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-top: 10px;
+        }
+        .option-btn {
+          padding: 8px 12px;
+          font-size: 0.9rem;
+        }
+        h2 {
+          font-size: 1.2rem;
+          margin: 5px 0;
+        }
+        p {
+          margin: 5px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+      <!-- HUD -->
+      <div id="hud">
+        <div id="level-display">Level 1</div>
+        <div id="score-display">Score: 0</div>
+        <div id="lives-display">Lives: ❤️❤️❤️</div>
+      </div>
+
+      <!-- 1. NAME SCREEN (Layar Pertama) -->
+      <div id="name-screen" class="ui-layer screen active">
+        <h1>Vocabulary Quest</h1>
+        <p>Siapa nama kamu?</p>
+        <input
+          type="text"
+          id="player-name-input"
+          placeholder="Tulis namamu di sini"
+          maxlength="15"
+        />
+        <button onclick="submitName()">Lanjut</button>
+      </div>
+
+      <!-- 2. START SCREEN (Layar Kedua - Instruksi) -->
+      <div id="start-screen" class="ui-layer screen">
+        <h1>
+          Halo,
+          <span id="display-name-start" style="color: #2196f3">Player</span>!
+        </h1>
+        <p>Jelajahi 5 level dengan tingkat kesulitan yang meningkat.</p>
+        <p>Ada total 100 kata bahasa Inggris yang bisa dipelajari.</p>
+        <p><b>Kontrol:</b> Tombol Panah atau Tombol Layar</p>
+        <button onclick="startGame(1)">Mulai Level 1</button>
+      </div>
+
+      <!-- Quiz Modal -->
+      <div id="quiz-modal" class="ui-layer">
+        <h2>Vocabulary Check!</h2>
+        <p>Apa arti dari kata ini?</p>
+        <div class="quiz-word" id="quiz-word-text">WORD</div>
+        <div class="options-grid" id="quiz-options">
+          <!-- Options injected by JS -->
+        </div>
+      </div>
+
+      <!-- Level Complete Screen -->
+      <div id="level-complete-screen" class="ui-layer screen">
+        <h1 style="color: #2196f3">LEVEL SELESAI!</h1>
+        <p>Kerja bagus! Kamu menyelesaikan level ini.</p>
+        <p>Bersiap untuk kata-kata yang lebih sulit.</p>
+        <button onclick="nextLevel()">Level Selanjutnya</button>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="game-over-screen" class="ui-layer screen">
+        <h1 style="color: #f44336">GAME OVER</h1>
+        <p>Yah, nyawa kamu habis!</p>
+        <p>
+          Nama:
+          <span id="end-name-lose" style="font-weight: bold; color: #f44336"
+            >Player</span
+          >
+        </p>
+        <p id="final-score-lose">Score: 0</p>
+        <button onclick="startGame(1)">Coba Lagi</button>
+      </div>
+
+      <!-- Win Screen -->
+      <div id="win-screen" class="ui-layer screen">
+        <h1 style="color: #ffd700">KAMU MENANG!</h1>
+        <p>Selamat! Kamu telah menaklukkan 100 kata!</p>
+        <p>
+          Nama:
+          <span id="end-name-win" style="font-weight: bold; color: #2196f3"
+            >Player</span
+          >
+        </p>
+        <p id="final-score-win">Score: 0</p>
+        <button onclick="startGame(1)">Main Lagi</button>
+      </div>
+
+      <!-- Touch Controls -->
+      <div id="touch-controls">
+        <div class="control-group">
+          <div id="btn-left" class="touch-btn">←</div>
+          <div id="btn-right" class="touch-btn">→</div>
+        </div>
+        <div class="control-group">
+          <div id="btn-jump" class="touch-btn">↑</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link to external JavaScript file -->
+    <script src="code.js"></script>
+  </body>
+</html>

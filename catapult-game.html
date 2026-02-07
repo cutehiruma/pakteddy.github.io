@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Siege Master: Precise Trajectory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap");
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        margin: 0;
+        overflow: hidden;
+        background: #e0f2fe;
+        touch-action: none;
+      }
+      #game-wrapper {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      canvas {
+        background: linear-gradient(
+          to bottom,
+          #7dd3fc 0%,
+          #bae6fd 50%,
+          #4ade80 50%,
+          #16a34a 100%
+        );
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        cursor: crosshair;
+        touch-action: none;
+      }
+      .ui-panel {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 2px solid #cbd5e1;
+      }
+      #quiz-overlay {
+        display: none;
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(8px);
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #start-screen {
+        position: absolute;
+        inset: 0;
+        z-index: 100;
+        background: linear-gradient(to bottom, #7dd3fc, #bae6fd);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-wrapper">
+      <div id="start-screen">
+        <div
+          class="bg-white/80 backdrop-blur-md p-12 rounded-[3rem] shadow-2xl border-4 border-white max-w-lg"
+        >
+          <div
+            class="w-24 h-24 bg-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+          >
+            <i
+              data-lucide="castle"
+              class="text-white"
+              style="width: 48px; height: 48px"
+            ></i>
+          </div>
+          <h1 class="text-5xl font-black text-slate-900 mb-2 tracking-tighter">
+            SIEGE MASTER
+          </h1>
+          <p
+            class="text-amber-600 font-bold tracking-[0.3em] text-xs mb-8 uppercase"
+          >
+            Edisi Strategi Kosa Kata
+          </p>
+
+          <div class="space-y-4 mb-10 text-left text-slate-600 font-medium">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"
+              >
+                <i
+                  data-lucide="book-open"
+                  style="width: 16px; height: 16px"
+                ></i>
+              </div>
+              <span>Jawab kosa kata untuk amunisi</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600"
+              >
+                <i data-lucide="target" style="width: 16px; height: 16px"></i>
+              </div>
+              <span>Sentuh & Tarik katapult ke lawan</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-600"
+              >
+                <i data-lucide="crown" style="width: 16px; height: 16px"></i>
+              </div>
+              <span>Hancurkan benteng musuh!</span>
+            </div>
+          </div>
+
+          <button
+            onclick="startGame()"
+            class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-xl hover:bg-slate-800 transition-transform active:scale-95 shadow-xl pointer-events-auto"
+          >
+            MULAI PERMAINAN
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="absolute top-4 left-4 right-4 flex justify-between items-start z-10 pointer-events-none"
+      >
+        <div
+          class="ui-panel p-4 rounded-2xl w-48 pointer-events-auto border-l-8 border-blue-600"
+        >
+          <p class="text-[10px] font-black text-blue-600 uppercase">
+            Panglima Biru
+          </p>
+          <div class="h-4 bg-slate-200 rounded-full mt-1 overflow-hidden">
+            <div
+              id="p1-hp"
+              class="h-full bg-blue-600 transition-all"
+              style="width: 100%"
+            ></div>
+          </div>
+        </div>
+
+        <div
+          id="turn-indicator"
+          class="ui-panel px-8 py-2 rounded-full pointer-events-auto border-b-4 border-amber-500"
+        >
+          <p
+            id="turn-text"
+            class="text-xs font-black uppercase text-slate-800 tracking-tighter"
+          >
+            Siap Menyerang
+          </p>
+        </div>
+
+        <div
+          class="ui-panel p-4 rounded-2xl w-48 pointer-events-auto border-r-8 border-red-600 text-right"
+        >
+          <p class="text-[10px] font-black text-red-600 uppercase">
+            Panglima Merah
+          </p>
+          <div class="h-4 bg-slate-200 rounded-full mt-1 overflow-hidden">
+            <div
+              id="p2-hp"
+              class="h-full bg-red-600 transition-all ml-auto"
+              style="width: 100%"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="quiz-overlay">
+        <div
+          class="bg-white p-8 rounded-[2rem] max-w-sm w-full shadow-2xl border-t-8"
+          id="quiz-card"
+        >
+          <div class="text-center mb-6">
+            <span
+              id="quiz-turn-label"
+              class="px-4 py-1 rounded-full text-[11px] font-black uppercase tracking-widest text-white shadow-sm"
+            >
+              Giliran: Tim Biru
+            </span>
+            <p class="text-slate-400 font-bold text-[10px] uppercase mt-4">
+              Apa arti dari kosa kata berikut?
+            </p>
+          </div>
+          <h2
+            id="question"
+            class="text-center text-4xl font-black text-slate-900 mb-8 leading-tight"
+          ></h2>
+          <div id="options" class="grid gap-3"></div>
+        </div>
+      </div>
+
+      <div
+        id="win-overlay"
+        class="hidden absolute inset-0 z-[60] bg-white flex flex-col items-center justify-center p-10 text-center"
+      >
+        <h1 id="win-title" class="text-6xl font-black mb-8"></h1>
+        <button
+          onclick="location.reload()"
+          class="bg-slate-900 text-white px-10 py-4 rounded-xl font-bold"
+        >
+          MAIN LAGI
+        </button>
+      </div>
+
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const turnText = document.getElementById("turn-text");
+      const quizOverlay = document.getElementById("quiz-overlay");
+      const quizCard = document.getElementById("quiz-card");
+      const quizLabel = document.getElementById("quiz-turn-label");
+      const startScreen = document.getElementById("start-screen");
+
+      let gameActive = false;
+      let currentPlayer = 1;
+      let canShoot = false;
+      let isDragging = false;
+      let p1HP = 100;
+      let p2HP = 100;
+      let projectile = null;
+      let particles = [];
+      let mousePos = { x: 0, y: 0 };
+      let frameCount = 0;
+
+      const GROUND_Y = 500;
+      const P1_POS = { x: 120, y: GROUND_Y };
+      const P2_POS = { x: 880, y: GROUND_Y };
+      const P1_PIVOT = { x: 250, y: GROUND_Y - 40 };
+      const P2_PIVOT = { x: 750, y: GROUND_Y - 40 };
+      const MAX_PULL = 80;
+      const POWER_MULT = 0.15;
+
+      const words = [
+        { q: "Castle", a: ["Istana", "Rumah", "Gua"], c: 0 },
+        { q: "Weapon", a: ["Makanan", "Senjata", "Pakaian"], c: 1 },
+        { q: "Sword", a: ["Kapak", "Pedang", "Tombak"], c: 1 },
+        { q: "King", a: ["Rakyat", "Pangeran", "Raja"], c: 2 },
+        { q: "Peace", a: ["Perang", "Damai", "Hancur"], c: 1 },
+        { q: "Shield", a: ["Tameng", "Pedang", "Panah"], c: 0 },
+        { q: "Arrow", a: ["Busur", "Tali", "Anak Panah"], c: 2 },
+        { q: "Knight", a: ["Petani", "Ksatria", "Pelayan"], c: 1 },
+        { q: "Victory", a: ["Kekalahan", "Kemenangan", "Kerjasama"], c: 1 },
+        { q: "Battle", a: ["Pertempuran", "Perundingan", "Perjalanan"], c: 0 },
+        { q: "Armor", a: ["Senjata", "Baju Zirah", "Helm"], c: 1 },
+        { q: "Dragon", a: ["Naga", "Singa", "Elang"], c: 0 },
+        { q: "Wall", a: ["Pintu", "Jendela", "Dinding"], c: 2 },
+        { q: "Horse", a: ["Sapi", "Kuda", "Kambing"], c: 1 },
+        { q: "Queen", a: ["Putri", "Ratu", "Penyihir"], c: 1 },
+      ];
+
+      function resize() {
+        canvas.width = 1000;
+        canvas.height = 600;
+      }
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+
+      resize();
+
+      function startGame() {
+        startScreen.style.display = "none";
+        gameActive = true;
+        p1HP = 100;
+        p2HP = 100;
+        currentPlayer = 1;
+        updateUI();
+        triggerQuiz();
+        requestAnimationFrame(animate);
+      }
+
+      function triggerQuiz() {
+        if (!gameActive) return;
+
+        // Update Label Siapa yang menjawab
+        if (currentPlayer === 1) {
+          quizLabel.innerText = "GILIRAN: PANGLIMA BIRU";
+          quizLabel.style.backgroundColor = "#2563eb";
+          quizCard.style.borderColor = "#2563eb";
+        } else {
+          quizLabel.innerText = "GILIRAN: PANGLIMA MERAH";
+          quizLabel.style.backgroundColor = "#dc2626";
+          quizCard.style.borderColor = "#dc2626";
+        }
+
+        const data = words[Math.floor(Math.random() * words.length)];
+        document.getElementById("question").innerText = `"${data.q}"`;
+        const options = document.getElementById("options");
+        options.innerHTML = "";
+
+        data.a.forEach((opt, i) => {
+          const btn = document.createElement("button");
+          btn.className =
+            "w-full py-4 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold text-slate-800 transition-all border-2 border-transparent active:scale-95";
+          btn.innerText = opt;
+          btn.onclick = () => {
+            if (i === data.c) {
+              quizOverlay.style.display = "none";
+              canShoot = true;
+            } else {
+              quizOverlay.style.display = "none";
+              switchTurn();
+            }
+          };
+          options.appendChild(btn);
+        });
+        quizOverlay.style.display = "flex";
+        updateUI();
+      }
+
+      function switchTurn() {
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        setTimeout(() => {
+          if (gameActive) triggerQuiz();
+        }, 1000);
+      }
+
+      function updateUI() {
+        document.getElementById("p1-hp").style.width = p1HP + "%";
+        document.getElementById("p2-hp").style.width = p2HP + "%";
+        turnText.innerText =
+          currentPlayer === 1
+            ? "GILIRAN: PENGLIMA BIRU"
+            : "GILIRAN: PENGLIMA MERAH";
+        turnText.style.color = currentPlayer === 1 ? "#2563eb" : "#dc2626";
+      }
+
+      function getCoords(e) {
+        const r = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - r.left) * (canvas.width / r.width),
+          y: (clientY - r.top) * (canvas.height / r.height),
+        };
+      }
+
+      function onStart(e) {
+        if (!canShoot || !gameActive) return;
+        const coords = getCoords(e);
+        const pivot = currentPlayer === 1 ? P1_PIVOT : P2_PIVOT;
+
+        if (Math.hypot(coords.x - pivot.x, coords.y - pivot.y) < 100) {
+          isDragging = true;
+          mousePos = coords;
+        }
+      }
+
+      function onMove(e) {
+        if (!isDragging) return;
+        if (e.cancelable) e.preventDefault();
+
+        let coords = getCoords(e);
+        const pivot = currentPlayer === 1 ? P1_PIVOT : P2_PIVOT;
+
+        if (currentPlayer === 1) {
+          if (coords.x > pivot.x) coords.x = pivot.x;
+        } else {
+          if (coords.x < pivot.x) coords.x = pivot.x;
+        }
+        if (coords.y < pivot.y) coords.y = pivot.y;
+
+        const dist = Math.hypot(coords.x - pivot.x, coords.y - pivot.y);
+        if (dist > MAX_PULL) {
+          const ang = Math.atan2(coords.y - pivot.y, coords.x - pivot.x);
+          coords.x = pivot.x + Math.cos(ang) * MAX_PULL;
+          coords.y = pivot.y + Math.sin(ang) * MAX_PULL;
+        }
+        mousePos = coords;
+      }
+
+      function onEnd() {
+        if (isDragging) {
+          isDragging = false;
+          const pivot = currentPlayer === 1 ? P1_PIVOT : P2_PIVOT;
+          projectile = {
+            x: pivot.x,
+            y: pivot.y,
+            vx: (pivot.x - mousePos.x) * POWER_MULT,
+            vy: (pivot.y - mousePos.y) * POWER_MULT,
+            owner: currentPlayer,
+          };
+          canShoot = false;
+        }
+      }
+
+      canvas.addEventListener("mousedown", onStart);
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onEnd);
+
+      canvas.addEventListener(
+        "touchstart",
+        (e) => {
+          onStart(e);
+          if (e.cancelable) e.preventDefault();
+        },
+        { passive: false },
+      );
+
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("touchend", onEnd);
+
+      function drawCastle(pos, color) {
+        ctx.fillStyle = "rgba(0,0,0,0.1)";
+        ctx.fillRect(pos.x - 75, pos.y - 10, 150, 10);
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillRect(pos.x - 70, pos.y - 100, 140, 100);
+        ctx.fillStyle = "#64748b";
+        ctx.fillRect(pos.x - 85, pos.y - 150, 45, 150);
+        ctx.fillRect(pos.x + 40, pos.y - 150, 45, 150);
+        ctx.fillStyle = color;
+        ctx.fillRect(pos.x - 90, pos.y - 160, 55, 12);
+        ctx.fillRect(pos.x + 35, pos.y - 160, 55, 12);
+        ctx.fillStyle = "#334155";
+        ctx.beginPath();
+        ctx.roundRect(pos.x - 25, pos.y - 50, 50, 50, [25, 25, 0, 0]);
+        ctx.fill();
+        const wave = Math.sin(frameCount * 0.1) * 5;
+        ctx.strokeStyle = "#334155";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y - 100);
+        ctx.lineTo(pos.x, pos.y - 180);
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y - 180);
+        ctx.quadraticCurveTo(
+          pos.x + 15,
+          pos.y - 180 + wave,
+          pos.x + 35,
+          pos.y - 170,
+        );
+        ctx.lineTo(pos.x + 35, pos.y - 150);
+        ctx.quadraticCurveTo(
+          pos.x + 15,
+          pos.y - 160 + wave,
+          pos.x,
+          pos.y - 160,
+        );
+        ctx.fill();
+      }
+
+      function drawCatapult(pivot, side) {
+        const isMe =
+          (side === 1 && currentPlayer === 1) ||
+          (side === 2 && currentPlayer === 2);
+        ctx.fillStyle = "#451a03";
+        ctx.fillRect(pivot.x - 40, GROUND_Y - 15, 80, 15);
+        ctx.fillStyle = "#1c1917";
+        ctx.beginPath();
+        ctx.arc(pivot.x - 30, GROUND_Y - 5, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(pivot.x + 30, GROUND_Y - 5, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#451a03";
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(pivot.x, GROUND_Y - 15);
+        ctx.lineTo(pivot.x, pivot.y);
+        ctx.stroke();
+        let endX, endY;
+        if (isDragging && isMe) {
+          endX = mousePos.x;
+          endY = mousePos.y;
+          ctx.setLineDash([5, 5]);
+          ctx.strokeStyle = "rgba(0,0,0,0.2)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          let tx = pivot.x,
+            ty = pivot.y,
+            tvx = (pivot.x - mousePos.x) * POWER_MULT,
+            tvy = (pivot.y - mousePos.y) * POWER_MULT;
+          for (let i = 0; i < 45; i++) {
+            ctx.lineTo(tx, ty);
+            tx += tvx;
+            tvy += 0.25;
+            ty += tvy;
+            if (ty > GROUND_Y) break;
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+        } else {
+          const ang = side === 1 ? -Math.PI / 4 : Math.PI + Math.PI / 4;
+          endX = pivot.x + Math.cos(ang) * 70;
+          endY = pivot.y + Math.sin(ang) * 70;
+        }
+        ctx.strokeStyle = "#78350f";
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(pivot.x, pivot.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        ctx.fillStyle = "#78350f";
+        ctx.beginPath();
+        ctx.arc(endX, endY, 15, 0, Math.PI * 2);
+        ctx.fill();
+        if (canShoot && isMe) {
+          ctx.fillStyle = "#475569";
+          ctx.beginPath();
+          ctx.arc(endX, endY, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function createExplosion(x, y, color) {
+        for (let i = 0; i < 20; i++) {
+          particles.push({
+            x,
+            y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1,
+            color,
+          });
+        }
+      }
+
+      function animate() {
+        if (!gameActive) return;
+        frameCount++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fde047";
+        ctx.beginPath();
+        ctx.arc(500, 100, 40, 0, Math.PI * 2);
+        ctx.fill();
+        drawCastle(P1_POS, "#2563eb");
+        drawCastle(P2_POS, "#dc2626");
+        drawCatapult(P1_PIVOT, 1);
+        drawCatapult(P2_PIVOT, 2);
+        if (projectile) {
+          projectile.vy += 0.25;
+          projectile.x += projectile.vx;
+          projectile.y += projectile.vy;
+          ctx.fillStyle = "#475569";
+          ctx.beginPath();
+          ctx.arc(projectile.x, projectile.y, 10, 0, Math.PI * 2);
+          ctx.fill();
+          if (projectile.y > GROUND_Y) {
+            createExplosion(projectile.x, GROUND_Y, "#16a34a");
+            projectile = null;
+            switchTurn();
+          } else if (
+            projectile.x > 800 &&
+            projectile.owner === 1 &&
+            projectile.y > 350
+          ) {
+            p2HP -= 25;
+            createExplosion(projectile.x, projectile.y, "#dc2626");
+            projectile = null;
+            if (p2HP <= 0) endGame("BIRU");
+            else switchTurn();
+          } else if (
+            projectile.x < 200 &&
+            projectile.owner === 2 &&
+            projectile.y > 350
+          ) {
+            p1HP -= 25;
+            createExplosion(projectile.x, projectile.y, "#2563eb");
+            projectile = null;
+            if (p1HP <= 0) endGame("MERAH");
+            else switchTurn();
+          } else if (projectile.x < 0 || projectile.x > 1000) {
+            projectile = null;
+            switchTurn();
+          }
+        }
+        particles.forEach((p, i) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life -= 0.02;
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.life;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          if (p.life <= 0) particles.splice(i, 1);
+        });
+        requestAnimationFrame(animate);
+      }
+
+      function endGame(winner) {
+        gameActive = false;
+        document.getElementById("win-overlay").classList.remove("hidden");
+        document.getElementById("win-title").innerText =
+          "PENGLIMA " + winner + " MENANG!";
+        document.getElementById("win-title").style.color =
+          winner === "BIRU" ? "#2563eb" : "#dc2626";
+      }
+    </script>
+  </body>
+</html>

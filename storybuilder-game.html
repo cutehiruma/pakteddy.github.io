@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Narrative: Story Builder</title>
+    <style>
+      :root {
+        --primary: #2c3e50;
+        --accent: #e67e22;
+        --bg: #fdf6e3;
+        --card: #ffffff;
+        --success: #27ae60;
+        --error: #e74c3c;
+        --font-main: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-main);
+        background-color: var(--bg);
+        color: var(--primary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 10px;
+      }
+
+      #game-container {
+        width: 100%;
+        max-width: 650px;
+        background: var(--card);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border: 4px solid var(--primary);
+        position: relative;
+        text-align: center;
+      }
+
+      /* Progress Header */
+      .header {
+        margin-bottom: 20px;
+      }
+
+      .progress-bar {
+        height: 12px;
+        background: #eee;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: var(--success);
+        width: 0%;
+        transition: width 0.5s ease;
+      }
+
+      /* Screens */
+      .screen {
+        display: none;
+        animation: slideIn 0.4s ease-out;
+      }
+      .active {
+        display: block;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Typography */
+      h1 {
+        font-size: 1.8rem;
+        color: var(--accent);
+        margin: 10px 0;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+      }
+      p {
+        line-height: 1.6;
+        font-size: 1.05rem;
+      }
+
+      .story-text {
+        background: #fff9eb;
+        padding: 20px;
+        border-left: 5px solid var(--accent);
+        text-align: left;
+        font-style: italic;
+        margin: 20px 0;
+        border-radius: 4px;
+        font-size: 1.05rem;
+      }
+
+      /* Interactive Elements */
+      .btn {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin: 10px 5px;
+        display: inline-block;
+        box-shadow: 0 4px 0 #b35d10;
+      }
+
+      .btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 #b35d10;
+      }
+      .btn-retry {
+        background: #95a5a6;
+        box-shadow: 0 4px 0 #7f8c8d;
+      }
+
+      .option-group {
+        text-align: left;
+        margin: 20px 0;
+      }
+
+      .option-btn {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: 0.2s;
+        text-align: left;
+      }
+
+      .option-btn:hover {
+        background: #e9ecef;
+      }
+      .option-btn.selected {
+        border-color: var(--accent);
+        background: #fff4e6;
+        font-weight: bold;
+      }
+
+      /* Sortable List */
+      .sort-item {
+        background: #fff;
+        border: 2px dashed var(--accent);
+        margin: 8px 0;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 8px;
+        text-align: left;
+      }
+
+      .sort-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .arrow {
+        background: #eee;
+        border: 1px solid #ccc;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+
+      .feedback-box {
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 20px;
+        font-weight: bold;
+        display: none;
+      }
+
+      .error {
+        background: #fdecea;
+        color: var(--error);
+        border: 1px solid var(--error);
+      }
+      .success {
+        background: #eafaf1;
+        color: var(--success);
+        border: 1px solid var(--success);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      /* Responsive */
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 1.5rem;
+        }
+        .btn {
+          width: 100%;
+          margin: 5px 0;
+        }
+        #game-container {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <div class="header" id="game-header" style="display: none">
+        <div id="room-label" style="font-weight: bold; color: var(--accent)">
+          Room 1 of 4
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- 1. START SCREEN -->
+      <section id="screen-start" class="screen active">
+        <div style="font-size: 4rem">📖</div>
+        <h1>Narrative:<br />World Story Builder</h1>
+        <p>
+          You are trapped inside a magical story book!<br />Solve the narrative
+          challenges to find your way home.
+        </p>
+        <button class="btn" onclick="navigateTo('screen-instruction')">
+          START GAME
+        </button>
+      </section>
+
+      <!-- 2. INSTRUCTION SCREEN -->
+      <section id="screen-instruction" class="screen">
+        <h2>How to Escape</h2>
+        <div style="text-align: left; margin: 20px auto; max-width: 400px">
+          <p>✅ <b>Read</b> the story in each room.</p>
+          <p>✅ <b>Answer</b> questions correctly.</p>
+          <p>✅ <b>Unlock</b> 4 doors to escape.</p>
+          <p>🔄 <b>Retry</b> if you make a mistake!</p>
+        </div>
+        <button class="btn" onclick="startGame()">ENTER THE BOOK</button>
+      </section>
+
+      <!-- ROOM 1: ORIENTATION -->
+      <section id="screen-room1" class="screen">
+        <h2>Room 1: Orientation</h2>
+        <div class="story-text" id="r1-story"></div>
+        <div class="option-group" id="r1-questions"></div>
+        <div id="fb-1" class="feedback-box"></div>
+        <div class="action-btns">
+          <button class="btn" id="r1-main-btn" onclick="checkRoom1()">
+            UNLOCK DOOR
+          </button>
+          <button
+            class="btn btn-retry hidden"
+            id="r1-retry-btn"
+            onclick="resetRoom(1)"
+          >
+            TRY AGAIN
+          </button>
+        </div>
+      </section>
+
+      <!-- ROOM 2: SEQUENCE -->
+      <section id="screen-room2" class="screen">
+        <h2>Room 2: Sequence of Events</h2>
+        <p>
+          The pages of the book are mixed up! Put the events in the
+          <b>correct order (1 to 4)</b>:
+        </p>
+        <div id="sequence-container"></div>
+        <div id="fb-2" class="feedback-box"></div>
+        <div class="action-btns">
+          <button class="btn" id="r2-main-btn" onclick="checkRoom2()">
+            CHECK ORDER
+          </button>
+          <button
+            class="btn btn-retry hidden"
+            id="r2-retry-btn"
+            onclick="resetRoom(2)"
+          >
+            TRY AGAIN
+          </button>
+        </div>
+      </section>
+
+      <!-- ROOM 3: COMPLICATION -->
+      <section id="screen-room3" class="screen">
+        <h2>Room 3: The Complication</h2>
+        <div class="story-text" id="r3-story"></div>
+        <div class="option-group" id="r3-questions"></div>
+        <div id="fb-3" class="feedback-box"></div>
+        <div class="action-btns">
+          <button class="btn" id="r3-main-btn" onclick="checkRoom3()">
+            OPEN LOCK
+          </button>
+          <button
+            class="btn btn-retry hidden"
+            id="r3-retry-btn"
+            onclick="resetRoom(3)"
+          >
+            TRY AGAIN
+          </button>
+        </div>
+      </section>
+
+      <!-- ROOM 4: RESOLUTION -->
+      <section id="screen-room4" class="screen">
+        <h2>Room 4: Resolution & Moral</h2>
+        <div class="story-text" id="r4-story"></div>
+        <div class="option-group" id="r4-questions"></div>
+        <div id="fb-4" class="feedback-box"></div>
+        <div class="action-btns">
+          <button class="btn" id="r4-main-btn" onclick="checkRoom4()">
+            EXIT BOOK
+          </button>
+          <button
+            class="btn btn-retry hidden"
+            id="r4-retry-btn"
+            onclick="resetRoom(4)"
+          >
+            TRY AGAIN
+          </button>
+        </div>
+      </section>
+
+      <!-- FINAL SCREEN -->
+      <section id="screen-final" class="screen">
+        <div style="font-size: 5rem">🏆</div>
+        <h1>YOU ESCAPED!</h1>
+        <p>
+          Amazing! You understand Narrative Texts perfectly.<br />The story book
+          is closed, and you are free.
+        </p>
+        <button class="btn" onclick="location.reload()">
+          PLAY ANOTHER STORY
+        </button>
+      </section>
+    </div>
+
+    <script>
+      // Story Database
+      const stories = [
+        {
+          title: "The Lion and the Mouse",
+          r1Story:
+            "Once upon a time, a mighty <b>Lion</b> was sleeping in a <b>deep forest</b>. Suddenly, a tiny <b>Mouse</b> ran over his nose. The Lion woke up and caught the Mouse with his huge paw.",
+          r1Q1: {
+            q: "Who are the characters?",
+            options: ["Tiger and Mouse", "Lion and Mouse"],
+            correct: "b",
+          },
+          r1Q2: {
+            q: "Where is the setting?",
+            options: ["In a deep forest", "In a small house"],
+            correct: "a",
+          },
+          sequence: [
+            { id: 1, text: "The Lion caught the little Mouse." },
+            { id: 2, text: "The Lion laughed but let the Mouse go." },
+            { id: 3, text: "Hunters trapped the Lion in a net." },
+            { id: 4, text: "The Mouse gnawed the ropes to free the Lion." },
+          ],
+          r3Story:
+            "The Lion was about to eat the Mouse. 'Please let me go!' cried the Mouse. 'I might help you someday.' The Lion laughed but let him go. A few days later, <b>hunters caught the Lion in a net</b>. He roared but could not escape.",
+          r3Q1: {
+            q: "What is the complication (problem)?",
+            options: [
+              "The Lion was hungry",
+              "The Lion was trapped in a net",
+              "The Mouse got lost",
+            ],
+            correct: "b",
+          },
+          r4Story:
+            "The Mouse heard the Lion and ran to help. He used his small teeth to bite the ropes. Soon, the Lion was free! He learned that even a small friend can be a big help.",
+          r4Q1: {
+            q: "How was the problem solved?",
+            options: ["Mouse bit the net", "Hunters let him go"],
+            correct: "a",
+          },
+          r4Q2: {
+            q: "What is the moral lesson?",
+            options: [
+              "Don't play with mice",
+              "A small friend can be a great friend",
+            ],
+            correct: "b",
+          },
+        },
+        {
+          title: "The Thirsty Crow",
+          r1Story:
+            "On a hot summer day, a <b>thirsty Crow</b> flew all over the <b>fields</b> looking for water. For a long time, he could not find any. He felt very weak.",
+          r1Q1: {
+            q: "Who is the main character?",
+            options: ["A Thirsty Crow", "A Hungry Eagle"],
+            correct: "a",
+          },
+          r1Q2: {
+            q: "When does the story happen?",
+            options: ["Hot summer day", "Cold winter night"],
+            correct: "a",
+          },
+          sequence: [
+            { id: 1, text: "The Crow found a pitcher with a little water." },
+            { id: 2, text: "The Crow could not reach the water inside." },
+            { id: 3, text: "The Crow dropped pebbles into the pitcher." },
+            { id: 4, text: "The water level rose and the Crow drank." },
+          ],
+          r3Story:
+            "He finally saw a pitcher. But the water was at the bottom. He tried to push his head into the pitcher, but it was too narrow. <b>He could not reach the water</b> and was afraid he would die of thirst.",
+          r3Q1: {
+            q: "What is the complication?",
+            options: [
+              "The pitcher was broken",
+              "He could not reach the water",
+              "The water was too salty",
+            ],
+            correct: "b",
+          },
+          r4Story:
+            "He saw some pebbles on the ground. He started dropping them one by one into the pitcher. The water rose up to the top! He drank the water and flew away happily.",
+          r4Q1: {
+            q: "How was the problem solved?",
+            options: [
+              "He used pebbles to raise the water",
+              "A boy helped him drink",
+            ],
+            correct: "a",
+          },
+          r4Q2: {
+            q: "What is the moral lesson?",
+            options: [
+              "Pebbles are heavy",
+              "Where there's a will, there's a way",
+            ],
+            correct: "b",
+          },
+        },
+        {
+          title: "The Ant and the Dove",
+          r1Story:
+            "One day, an <b>Ant</b> was searching for water. After walking for some time, she came to a <b>spring</b>. To reach the water, she climbed up a blade of grass.",
+          r1Q1: {
+            q: "Who are the characters?",
+            options: ["An Ant and a Bee", "An Ant and a Dove"],
+            correct: "b",
+          },
+          r1Q2: {
+            q: "Where is the setting?",
+            options: ["Near a spring", "In a desert"],
+            correct: "a",
+          },
+          sequence: [
+            { id: 1, text: "The Ant fell into the water." },
+            { id: 2, text: "The Dove dropped a leaf to save the Ant." },
+            { id: 3, text: "A hunter tried to catch the Dove." },
+            { id: 4, text: "The Ant bit the hunter to save the Dove." },
+          ],
+          r3Story:
+            "Suddenly, she slipped and <b>fell into the water</b>. She was in big trouble because she could not swim. A Dove sitting on a nearby tree saw her and quickly dropped a leaf into the water.",
+          r3Q1: {
+            q: "What is the first complication?",
+            options: [
+              "The Ant fell into the water",
+              "The Dove was sleeping",
+              "It started raining",
+            ],
+            correct: "a",
+          },
+          r4Story:
+            "Later, a hunter tried to throw a net over the Dove. The Ant saw this and <b>bit him on the heel</b>. Feeling the pain, the hunter dropped his net. The Dove flew away to safety.",
+          r4Q1: {
+            q: "How did the Ant help the Dove?",
+            options: ["She called for help", "She bit the hunter's heel"],
+            correct: "b",
+          },
+          r4Q2: {
+            q: "What is the moral lesson?",
+            options: ["Ants are dangerous", "One good turn deserves another"],
+            correct: "b",
+          },
+        },
+      ];
+
+      // State management
+      let activeStory = null;
+      let currentRoom = 0;
+      let selections = {};
+      let currentSequence = [];
+
+      // Navigation
+      function navigateTo(id) {
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+
+        if (id.includes("room")) {
+          currentRoom = parseInt(id.replace("screen-room", ""));
+          updateHeader();
+        } else {
+          document.getElementById("game-header").style.display = "none";
+        }
+      }
+
+      function startGame() {
+        // Pick random story
+        activeStory = stories[Math.floor(Math.random() * stories.length)];
+        setupRoomContent();
+        document.getElementById("game-header").style.display = "block";
+        navigateTo("screen-room1");
+      }
+
+      function setupRoomContent() {
+        // Room 1
+        document.getElementById("r1-story").innerHTML = activeStory.r1Story;
+        document.getElementById("r1-questions").innerHTML = `
+            <p><b>1. ${activeStory.r1Q1.q}</b></p>
+            <button class="option-btn" onclick="pick('r1q1', 'a', this)">A. ${activeStory.r1Q1.options[0]}</button>
+            <button class="option-btn" onclick="pick('r1q1', 'b', this)">B. ${activeStory.r1Q1.options[1]}</button>
+            <p><b>2. ${activeStory.r1Q2.q}</b></p>
+            <button class="option-btn" onclick="pick('r1q2', 'a', this)">A. ${activeStory.r1Q2.options[0]}</button>
+            <button class="option-btn" onclick="pick('r1q2', 'b', this)">B. ${activeStory.r1Q2.options[1]}</button>
+        `;
+
+        // Room 3
+        document.getElementById("r3-story").innerHTML = activeStory.r3Story;
+        document.getElementById("r3-questions").innerHTML = `
+            <p><b>${activeStory.r3Q1.q}</b></p>
+            ${activeStory.r3Q1.options
+              .map(
+                (opt, i) => `
+                <button class="option-btn" onclick="pick('r3q1', '${String.fromCharCode(97 + i)}', this)">${String.fromCharCode(65 + i)}. ${opt}</button>
+            `,
+              )
+              .join("")}
+        `;
+
+        // Room 4
+        document.getElementById("r4-story").innerHTML = activeStory.r4Story;
+        document.getElementById("r4-questions").innerHTML = `
+            <p><b>1. ${activeStory.r4Q1.q}</b></p>
+            <button class="option-btn" onclick="pick('r4q1', 'a', this)">A. ${activeStory.r4Q1.options[0]}</button>
+            <button class="option-btn" onclick="pick('r4q1', 'b', this)">B. ${activeStory.r4Q1.options[1]}</button>
+            <p><b>2. ${activeStory.r4Q2.q}</b></p>
+            <button class="option-btn" onclick="pick('r4q2', 'a', this)">A. ${activeStory.r4Q2.options[0]}</button>
+            <button class="option-btn" onclick="pick('r4q2', 'b', this)">B. ${activeStory.r4Q2.options[1]}</button>
+        `;
+      }
+
+      function updateHeader() {
+        document.getElementById("room-label").innerText =
+          `Room ${currentRoom} of 4`;
+        document.getElementById("progress-fill").style.width =
+          `${(currentRoom - 1) * 25}%`;
+      }
+
+      function pick(qId, val, btn) {
+        selections[qId] = val;
+        const parent = btn.parentElement;
+        parent
+          .querySelectorAll(".option-btn")
+          .forEach((b) => b.classList.remove("selected"));
+        btn.classList.add("selected");
+      }
+
+      function showFeedback(roomNum, msg, isSuccess) {
+        const fb = document.getElementById(`fb-${roomNum}`);
+        const mainBtn = document.getElementById(`r${roomNum}-main-btn`);
+        const retryBtn = document.getElementById(`r${roomNum}-retry-btn`);
+
+        fb.innerText = msg;
+        fb.style.display = "block";
+        fb.className = `feedback-box ${isSuccess ? "success" : "error"}`;
+
+        if (!isSuccess) {
+          mainBtn.classList.add("hidden");
+          retryBtn.classList.remove("hidden");
+        } else {
+          mainBtn.classList.remove("hidden");
+          retryBtn.classList.add("hidden");
+        }
+      }
+
+      function resetRoom(roomNum) {
+        // Clear selections for this room
+        if (roomNum === 1) {
+          selections.r1q1 = null;
+          selections.r1q2 = null;
+        }
+        if (roomNum === 2) {
+          initSequence();
+        }
+        if (roomNum === 3) {
+          selections.r3q1 = null;
+        }
+        if (roomNum === 4) {
+          selections.r4q1 = null;
+          selections.r4q2 = null;
+        }
+
+        // UI resets
+        const room = document.getElementById(`screen-room${roomNum}`);
+        room
+          .querySelectorAll(".option-btn")
+          .forEach((b) => b.classList.remove("selected"));
+        document.getElementById(`fb-${roomNum}`).style.display = "none";
+        document
+          .getElementById(`r${roomNum}-main-btn`)
+          .classList.remove("hidden");
+        document
+          .getElementById(`r${roomNum}-retry-btn`)
+          .classList.add("hidden");
+      }
+
+      // Room Logics
+      function checkRoom1() {
+        if (
+          selections.r1q1 === activeStory.r1Q1.correct &&
+          selections.r1q2 === activeStory.r1Q2.correct
+        ) {
+          showFeedback(1, "✅ Correct! The first door is opening...", true);
+          setTimeout(() => {
+            initSequence();
+            navigateTo("screen-room2");
+          }, 1500);
+        } else {
+          showFeedback(
+            1,
+            "❌ Oops! Read the story again. You can do it!",
+            false,
+          );
+        }
+      }
+
+      function initSequence() {
+        currentSequence = [...activeStory.sequence].sort(
+          () => Math.random() - 0.5,
+        );
+        renderSequence();
+      }
+
+      function renderSequence() {
+        const container = document.getElementById("sequence-container");
+        container.innerHTML = "";
+        currentSequence.forEach((item, index) => {
+          const div = document.createElement("div");
+          div.className = "sort-item";
+          div.innerHTML = `
+                <span>${index + 1}. ${item.text}</span>
+                <div class="sort-controls">
+                    <button class="arrow" onclick="move(${index}, -1)">▲</button>
+                    <button class="arrow" onclick="move(${index}, 1)">▼</button>
+                </div>
+            `;
+          container.appendChild(div);
+        });
+      }
+
+      function move(index, dir) {
+        const newIdx = index + dir;
+        if (newIdx < 0 || newIdx >= currentSequence.length) return;
+        const temp = currentSequence[index];
+        currentSequence[index] = currentSequence[newIdx];
+        currentSequence[newIdx] = temp;
+        renderSequence();
+      }
+
+      function checkRoom2() {
+        const isCorrect = currentSequence.every(
+          (item, idx) => item.id === idx + 1,
+        );
+        if (isCorrect) {
+          showFeedback(2, "✅ Excellent! The story flows correctly now.", true);
+          setTimeout(() => navigateTo("screen-room3"), 1500);
+        } else {
+          showFeedback(
+            2,
+            "❌ Not quite. Think about the order of events!",
+            false,
+          );
+        }
+      }
+
+      function checkRoom3() {
+        if (selections.r3q1 === activeStory.r3Q1.correct) {
+          showFeedback(3, "✅ Yes! You identified the problem.", true);
+          setTimeout(() => navigateTo("screen-room4"), 1500);
+        } else {
+          showFeedback(3, "❌ Try again. What was the main trouble?", false);
+        }
+      }
+
+      function checkRoom4() {
+        if (
+          selections.r4q1 === activeStory.r4Q1.correct &&
+          selections.r4q2 === activeStory.r4Q2.correct
+        ) {
+          showFeedback(4, "✅ Perfect! You've unlocked the final exit!", true);
+          setTimeout(() => navigateTo("screen-final"), 1500);
+        } else {
+          showFeedback(
+            4,
+            "❌ Almost there! Re-check the ending and the lesson.",
+            false,
+          );
+        }
+      }
+    </script>
+  </body>
+</html>
