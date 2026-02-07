@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Sentence Scramble Race - Extended Edition</title>
+    <title>Sentence Scramble Race - Pro Turn-Based</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"
@@ -16,7 +16,7 @@
       :root {
         --primary: #00ff41;
         --bg: #050505;
-        --card-bg: #111;
+        --danger: #ff4141;
       }
 
       body {
@@ -111,9 +111,62 @@
         cursor: not-allowed;
       }
 
-      .btn-check:not(:disabled):hover {
-        filter: brightness(1.2);
-        transform: translateY(-2px);
+      .team-panel {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+      }
+
+      .team-panel.inactive {
+        filter: grayscale(1) brightness(0.2);
+        pointer-events: none;
+        opacity: 0.3;
+        transform: scale(0.95);
+      }
+
+      .turn-indicator {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary);
+        color: black;
+        padding: 2px 20px;
+        font-size: 12px;
+        font-weight: bold;
+        border-radius: 20px;
+        box-shadow: 0 0 15px var(--primary);
+        display: none;
+        white-space: nowrap;
+        z-index: 20;
+      }
+
+      .team-panel.active-turn .turn-indicator {
+        display: block;
+        animation: pulse 1s infinite alternate;
+      }
+
+      .turn-timer {
+        font-size: 40px;
+        font-weight: 900;
+        color: var(--primary);
+        text-shadow: 0 0 10px var(--primary);
+      }
+
+      .turn-timer.warning {
+        color: var(--danger);
+        text-shadow: 0 0 10px var(--danger);
+        animation: shake 0.2s infinite;
+      }
+
+      @keyframes pulse {
+        from {
+          opacity: 0.7;
+          transform: translateX(-50%) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) scale(1.1);
+        }
       }
 
       .error-shake {
@@ -133,53 +186,54 @@
         }
       }
 
-      @media (max-width: 768px) {
-        .slot-area {
-          min-height: 180px;
-        }
-        .word-chip {
-          font-size: 14px;
-          padding: 6px 12px;
-        }
+      canvas#fireworks {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        pointer-events: none;
+        display: none;
       }
     </style>
   </head>
   <body>
     <div class="matrix-grid"></div>
+    <canvas id="fireworks"></canvas>
 
     <header
       class="fixed top-0 w-full p-4 flex justify-between items-center z-50"
     >
-      <div class="text-left">
+      <div class="text-left w-1/4">
         <div class="text-[10px] opacity-50">NODE_ALPHA</div>
-        <div id="scoreA" class="text-2xl font-bold">WINS: 0</div>
+        <div id="scoreA" class="text-3xl font-black">0/5</div>
       </div>
 
-      <div class="text-center">
+      <div class="text-center flex-1">
         <h1 class="text-xl md:text-3xl font-black tracking-[0.3em] text-white">
           SENTENCE BREAKER
         </h1>
-        <div id="timer" class="text-yellow-500 font-mono text-xl">00:00</div>
+        <div id="turnClock" class="turn-timer">30</div>
         <button
           id="startBtn"
           onclick="initGame()"
-          class="mt-2 bg-transparent border border-primary text-primary px-6 py-1 rounded-full text-xs font-bold hover:bg-primary hover:text-black transition"
+          class="mt-2 bg-transparent border border-primary text-primary px-8 py-2 rounded-full text-sm font-bold hover:bg-primary hover:text-black transition uppercase tracking-widest"
         >
-          INITIALIZE_GAME
+          Start Mission
         </button>
       </div>
 
-      <div class="text-right">
+      <div class="text-right w-1/4">
         <div class="text-[10px] opacity-50">NODE_BETA</div>
-        <div id="scoreB" class="text-2xl font-bold">WINS: 0</div>
+        <div id="scoreB" class="text-3xl font-black">0/5</div>
       </div>
     </header>
 
-    <main class="flex h-full pt-32 pb-8 px-4 gap-4">
+    <main class="flex h-full pt-40 pb-8 px-4 gap-4">
       <!-- Player A Side -->
       <section
-        class="flex-1 flex flex-col bg-black/40 border border-white/5 rounded-3xl p-4 overflow-hidden"
+        id="panelA"
+        class="team-panel flex-1 flex flex-col bg-black/40 border border-white/5 rounded-3xl p-4 overflow-hidden inactive"
       >
+        <div class="turn-indicator">SYSTEM AUTHORIZED</div>
         <div class="flex justify-between items-center mb-4 px-2">
           <span class="text-xs font-bold text-primary">TEAM_ALPHA</span>
           <button
@@ -194,17 +248,16 @@
 
         <div class="flex-1 flex flex-col gap-6 overflow-y-auto">
           <div id="targetA" class="slot-area"></div>
-          <div class="text-[10px] text-center opacity-30">
-            --- WORD BANK ---
-          </div>
           <div id="sourceA" class="slot-area border-dashed"></div>
         </div>
       </section>
 
       <!-- Player B Side -->
       <section
-        class="flex-1 flex flex-col bg-black/40 border border-white/5 rounded-3xl p-4 overflow-hidden"
+        id="panelB"
+        class="team-panel flex-1 flex flex-col bg-black/40 border border-white/5 rounded-3xl p-4 overflow-hidden inactive"
       >
+        <div class="turn-indicator">SYSTEM AUTHORIZED</div>
         <div class="flex justify-between items-center mb-4 px-2">
           <span class="text-xs font-bold text-primary">TEAM_BETA</span>
           <button
@@ -219,9 +272,6 @@
 
         <div class="flex-1 flex flex-col gap-6 overflow-y-auto">
           <div id="targetB" class="slot-area"></div>
-          <div class="text-[10px] text-center opacity-30">
-            --- WORD BANK ---
-          </div>
           <div id="sourceB" class="slot-area border-dashed"></div>
         </div>
       </section>
@@ -232,21 +282,29 @@
       class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[10000]"
     >
       <div
-        class="text-center p-10 border-2 border-primary rounded-xl bg-black shadow-[0_0_50px_rgba(0,255,65,0.2)]"
+        class="text-center p-12 border-2 border-primary rounded-xl bg-black shadow-[0_0_80px_rgba(0,255,65,0.4)]"
       >
-        <h2 id="modalTitle" class="text-5xl font-black mb-4">NODE SYNCED</h2>
+        <h2
+          id="modalTitle"
+          class="text-6xl font-black mb-4 text-white uppercase tracking-tighter"
+        >
+          Mission Success
+        </h2>
         <p
           id="modalWinner"
-          class="text-xl mb-10 text-white tracking-widest"
+          class="text-2xl mb-10 text-primary tracking-widest"
         ></p>
-        <button onclick="location.reload()" class="btn-check px-12 py-4">
-          REBOOT SYSTEM
+        <button
+          onclick="location.reload()"
+          class="btn-check px-16 py-5 text-xl"
+        >
+          Restart System
         </button>
       </div>
     </div>
 
     <script>
-      // Database kalimat yang diperluas
+      // Database 50 Kalimat
       const sentencePool = [
         "I GO TO SCHOOL EVERY DAY",
         "THEY ARE PLAYING FOOTBALL NOW",
@@ -268,23 +326,45 @@
         "HE RIDES HIS BICYCLE TO PARK",
         "MY MOTHER BAKES A CHOCOLATE CAKE",
         "THE DOG BARKS AT THE STRANGER",
-        "THEY LISTEN TO MUSIC EVERY NIGHT",
-        "I BRUSH MY TEETH BEFORE SLEEP",
-        "WE GO SWIMMING IN THE POOL",
-        "THE RAIN FALLS FROM THE CLOUDS",
-        "SHE READS A STORY BOOK ALOUD",
+        "WE READ BOOKS IN THE LIBRARY",
         "THE TEACHER EXPLAINS THE LESSON CLEARLY",
-        "MY BROTHER REPAIRS THE BROKEN TOY",
-        "WE HELP OUR PARENTS AT HOME",
-        "THE FARMER PLANTS RICE IN FIELD",
-        "THE CHILDREN LAUGH IN THE PLAYGROUND",
+        "I BRUSH MY TEETH TWICE A DAY",
+        "THEY GO SWIMMING EVERY SATURDAY MORNING",
+        "SHE WEARS A BEAUTIFUL PINK DRESS",
+        "MY BROTHER PLAYS GUITAR VERY WELL",
+        "WE CLEAN OUR CLASSROOM EVERY FRIDAY",
+        "THE ELEPHANT IS A VERY BIG ANIMAL",
+        "I LIKE TO DRINK ORANGE JUICE",
+        "THEY ARE RUNNING AROUND THE FIELD",
+        "MY GRANDFATHER WORKS IN THE FARM",
+        "SHE IS WASHING HER NEW CAR",
+        "WE EAT LUNCH AT THE CANTEEN",
+        "THE RAIN FALLS FROM THE CLOUDS",
+        "I BRING AN UMBRELLA IN RAIN",
+        "THEY LISTEN TO MUSIC EVERY NIGHT",
+        "MY SISTER HELPS ME WITH HOMEWORK",
+        "THE MONKEY CLIMBS THE TALL TREE",
+        "WE CELEBRATE MY BIRTHDAY EVERY YEAR",
+        "THE STARS SHINE BRIGHT AT NIGHT",
+        "I WANT TO BE A PILOT",
+        "THEY TAKE THE BUS TO OFFICE",
+        "SHE BUYS FRUITS AT THE MARKET",
+        "WE SING SONGS IN THE CHOIR",
+        "THE FISH SWIMS IN THE RIVER",
+        "I WASH MY HANDS BEFORE EATING",
+        "THEY BUILD A LARGE SAND CASTLE",
+        "MY COUSIN LIVES IN A BIG CITY",
+        "THE DOCTOR GIVES MEDICINE TO PATIENT",
+        "WE ENJOY THE VIEW FROM MOUNTAIN",
       ];
 
       let state = {
         A: { wins: 0, current: [], original: "" },
         B: { wins: 0, current: [], original: "" },
+        currentTurn: "A",
         gameActive: false,
-        time: 0,
+        turnTime: 30,
+        timerInterval: null,
       };
 
       let dragItem = null;
@@ -296,20 +376,55 @@
         document.getElementById("startBtn").classList.add("hidden");
         nextLevel("A");
         nextLevel("B");
+        updateTurnVisuals();
+        startCountdown();
+      }
 
-        setInterval(() => {
+      function startCountdown() {
+        clearInterval(state.timerInterval);
+        state.turnTime = 30;
+        const clock = document.getElementById("turnClock");
+        clock.innerText = state.turnTime;
+        clock.classList.remove("warning");
+
+        state.timerInterval = setInterval(() => {
           if (!state.gameActive) return;
-          state.time++;
-          const m = Math.floor(state.time / 60)
-            .toString()
-            .padStart(2, "0");
-          const s = (state.time % 60).toString().padStart(2, "0");
-          document.getElementById("timer").innerText = `${m}:${s}`;
+          state.turnTime--;
+          clock.innerText = state.turnTime;
+
+          if (state.turnTime <= 5) clock.classList.add("warning");
+
+          if (state.turnTime <= 0) {
+            clearInterval(state.timerInterval);
+            switchTurn();
+          }
         }, 1000);
       }
 
+      function updateTurnVisuals() {
+        const panelA = document.getElementById("panelA");
+        const panelB = document.getElementById("panelB");
+
+        if (state.currentTurn === "A") {
+          panelA.classList.remove("inactive");
+          panelA.classList.add("active-turn");
+          panelB.classList.add("inactive");
+          panelB.classList.remove("active-turn");
+        } else {
+          panelB.classList.remove("inactive");
+          panelB.classList.add("active-turn");
+          panelA.classList.add("inactive");
+          panelA.classList.remove("active-turn");
+        }
+      }
+
+      function switchTurn() {
+        state.currentTurn = state.currentTurn === "A" ? "B" : "A";
+        updateTurnVisuals();
+        startCountdown();
+      }
+
       function nextLevel(team) {
-        // Mengambil kalimat acak dari pool yang besar
         const raw =
           sentencePool[Math.floor(Math.random() * sentencePool.length)];
         const words = raw.split(" ");
@@ -336,7 +451,6 @@
           const slot = document.createElement("div");
           slot.className = "word-slot";
           slot.dataset.team = team;
-
           const chip = createChip(w, team);
           slot.appendChild(chip);
           sourceArea.appendChild(slot);
@@ -353,10 +467,14 @@
       }
 
       function onPointerDown(e) {
-        if (!state.gameActive) return;
+        if (
+          !state.gameActive ||
+          e.currentTarget.dataset.team !== state.currentTurn
+        )
+          return;
+
         dragItem = e.currentTarget;
         originalParent = dragItem.parentElement;
-
         const rect = dragItem.getBoundingClientRect();
         startX = e.clientX - rect.left;
         startY = e.clientY - rect.top;
@@ -393,7 +511,6 @@
 
       function onPointerUp(e) {
         if (!dragItem) return;
-
         const target = document.elementFromPoint(e.clientX, e.clientY);
         const slot = target?.closest(".word-slot");
         const team = dragItem.dataset.team;
@@ -428,15 +545,16 @@
         if (userSentence === state[team].original) {
           state[team].wins++;
           document.getElementById(`score${team}`).innerText =
-            `WINS: ${state[team].wins}`;
+            `${state[team].wins}/5`;
 
-          if (state[team].wins >= 3) {
+          if (state[team].wins >= 5) {
             showWin(team === "A" ? "TEAM ALPHA" : "TEAM BETA");
           } else {
             targetArea.style.borderColor = "#00ff41";
             setTimeout(() => {
               targetArea.style.borderColor = "";
               nextLevel(team);
+              switchTurn();
             }, 800);
           }
         } else {
@@ -445,17 +563,65 @@
           setTimeout(() => {
             targetArea.classList.remove("error-shake");
             targetArea.style.borderColor = "";
-          }, 500);
+            switchTurn();
+          }, 800);
         }
       }
 
       function showWin(winner) {
         state.gameActive = false;
+        clearInterval(state.timerInterval);
         const modal = document.getElementById("modal");
         const winnerText = document.getElementById("modalWinner");
         modal.classList.remove("hidden");
         modal.classList.add("flex");
         winnerText.innerText = `${winner} HAS SECURED THE DATABASE`;
+
+        const canvas = document.getElementById("fireworks");
+        canvas.style.display = "block";
+        startFireworks();
+      }
+
+      function startFireworks() {
+        const canvas = document.getElementById("fireworks");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        function createParticle(x, y) {
+          for (let i = 0; i < 30; i++) {
+            particles.push({
+              x,
+              y,
+              vx: (Math.random() - 0.5) * 10,
+              vy: (Math.random() - 0.5) * 10,
+              life: 100,
+              color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+            });
+          }
+        }
+
+        function update() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (Math.random() < 0.1)
+            createParticle(
+              Math.random() * canvas.width,
+              Math.random() * canvas.height,
+            );
+
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life--;
+            if (p.life <= 0) particles.splice(i, 1);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 4, 4);
+          }
+          requestAnimationFrame(update);
+        }
+        update();
       }
 
       window.addEventListener("contextmenu", (e) => e.preventDefault());
