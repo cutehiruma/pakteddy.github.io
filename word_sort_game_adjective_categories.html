@@ -1,0 +1,603 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: var(--font-sans); }
+
+#game-root {
+  min-height: 600px;
+  padding: 16px;
+  user-select: none;
+}
+
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+#header h1 {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+#meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.badge {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 0.5px solid var(--border-strong);
+  color: var(--text-secondary);
+  background: var(--surface-1);
+}
+
+#timer-badge { color: var(--text-accent); border-color: var(--border-accent); background: var(--bg-accent); }
+
+#score-badge { color: #3B6D11; border-color: #C0DD97; background: #EAF3DE; }
+
+button#reset-btn {
+  font-size: 13px;
+  padding: 5px 14px;
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+button#reset-btn:hover { background: var(--surface-0); }
+
+#word-bank {
+  background: var(--surface-1);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  min-height: 90px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+
+#word-bank-label {
+  width: 100%;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.word-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: grab;
+  border: 1.5px solid transparent;
+  transition: transform .12s, box-shadow .12s, opacity .15s;
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  touch-action: none;
+}
+
+.word-card .translation {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.word-card:active, .word-card.dragging {
+  cursor: grabbing;
+  transform: scale(1.08) rotate(2deg);
+  box-shadow: 0 6px 20px rgba(0,0,0,.15);
+  opacity: .85;
+  z-index: 999;
+}
+
+.word-card.placed { opacity: 1; cursor: default; }
+.word-card.correct { border-color: #639922; background: #EAF3DE; color: #3B6D11; }
+.word-card.wrong { border-color: #A32D2D; background: #FCEBEB; color: #A32D2D; animation: shake .3s; }
+.word-card.correct .translation { color: #3B6D11; }
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+#categories {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.category-box {
+  border-radius: 12px;
+  border: 2px dashed transparent;
+  padding: 10px;
+  min-height: 160px;
+  transition: border-color .15s, background .15s;
+}
+
+.category-box.drag-over {
+  border-style: solid;
+}
+
+.cat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+.cat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.cat-title { font-size: 14px; font-weight: 500; }
+.cat-subtitle { font-size: 11px; font-weight: 400; }
+.cat-count { margin-left: auto; font-size: 12px; font-weight: 500; opacity: .7; }
+
+.cat-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 60px;
+}
+
+.cat-fisik  { background: #E6F1FB; border-color: #B5D4F4; }
+.cat-fisik .cat-icon  { background: #B5D4F4; }
+.cat-fisik .cat-title { color: #185FA5; }
+.cat-fisik .cat-subtitle { color: #378ADD; }
+.cat-fisik .cat-count { color: #185FA5; }
+.cat-fisik.drag-over { border-color: #185FA5; background: #d0e8f8; }
+
+.cat-sifat  { background: #FAEEDA; border-color: #FAC775; }
+.cat-sifat .cat-icon  { background: #FAC775; }
+.cat-sifat .cat-title { color: #854F0B; }
+.cat-sifat .cat-subtitle { color: #BA7517; }
+.cat-sifat .cat-count { color: #854F0B; }
+.cat-sifat.drag-over { border-color: #854F0B; background: #f5e0b8; }
+
+.cat-tempat { background: #E1F5EE; border-color: #9FE1CB; }
+.cat-tempat .cat-icon  { background: #9FE1CB; }
+.cat-tempat .cat-title { color: #0F6E56; }
+.cat-tempat .cat-subtitle { color: #1D9E75; }
+.cat-tempat .cat-count { color: #0F6E56; }
+.cat-tempat.drag-over { border-color: #0F6E56; background: #b8e9d6; }
+
+.cat-benda  { background: #FBEAF0; border-color: #F4C0D1; }
+.cat-benda .cat-icon  { background: #F4C0D1; }
+.cat-benda .cat-title { color: #993556; }
+.cat-benda .cat-subtitle { color: #D4537E; }
+.cat-benda .cat-count { color: #993556; }
+.cat-benda.drag-over { border-color: #993556; background: #f0c6d6; }
+
+#result-overlay {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,.45);
+  border-radius: 12px;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#result-overlay.show { display: flex; }
+
+#result-box {
+  background: var(--surface-2);
+  border-radius: 16px;
+  padding: 28px 36px;
+  text-align: center;
+  max-width: 340px;
+}
+
+#result-box h2 { font-size: 28px; margin-bottom: 8px; }
+#result-box p { font-size: 15px; color: var(--text-secondary); margin-bottom: 16px; }
+
+#result-box button {
+  padding: 10px 28px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 0.5px solid var(--border-strong);
+  background: var(--surface-1);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+#game-wrap { position: relative; }
+</style>
+
+<div id="game-root">
+  <div id="header">
+    <h1>Word Sort — Adjective Categories</h1>
+    <div id="meta">
+      <span class="badge" id="timer-badge">⏱ 12:00</span>
+      <span class="badge" id="score-badge">✓ 0 / 32</span>
+      <button id="reset-btn">↺ Reset</button>
+    </div>
+  </div>
+
+  <div id="word-bank">
+    <div id="word-bank-label">Drag the words below into the correct category</div>
+  </div>
+
+  <div id="game-wrap">
+    <div id="categories">
+      <div class="category-box cat-fisik" id="cat-FISIK" data-cat="FISIK">
+        <div class="cat-header">
+          <div class="cat-icon">👤</div>
+          <div>
+            <div class="cat-title">FISIK</div>
+            <div class="cat-subtitle">Physical appearance</div>
+          </div>
+          <div class="cat-count" id="count-FISIK">0/8</div>
+        </div>
+        <div class="cat-words" id="words-FISIK"></div>
+      </div>
+
+      <div class="category-box cat-sifat" id="cat-SIFAT" data-cat="SIFAT">
+        <div class="cat-header">
+          <div class="cat-icon">💛</div>
+          <div>
+            <div class="cat-title">SIFAT</div>
+            <div class="cat-subtitle">Personality</div>
+          </div>
+          <div class="cat-count" id="count-SIFAT">0/8</div>
+        </div>
+        <div class="cat-words" id="words-SIFAT"></div>
+      </div>
+
+      <div class="category-box cat-tempat" id="cat-TEMPAT" data-cat="TEMPAT">
+        <div class="cat-header">
+          <div class="cat-icon">🌿</div>
+          <div>
+            <div class="cat-title">TEMPAT</div>
+            <div class="cat-subtitle">Place</div>
+          </div>
+          <div class="cat-count" id="count-TEMPAT">0/8</div>
+        </div>
+        <div class="cat-words" id="words-TEMPAT"></div>
+      </div>
+
+      <div class="category-box cat-benda" id="cat-BENDA" data-cat="BENDA">
+        <div class="cat-header">
+          <div class="cat-icon">📦</div>
+          <div>
+            <div class="cat-title">BENDA</div>
+            <div class="cat-subtitle">Object</div>
+          </div>
+          <div class="cat-count" id="count-BENDA">0/8</div>
+        </div>
+        <div class="cat-words" id="words-BENDA"></div>
+      </div>
+    </div>
+    <div id="result-overlay">
+      <div id="result-box">
+        <div id="result-emoji" style="font-size:48px; margin-bottom:8px;"></div>
+        <h2 id="result-title"></h2>
+        <p id="result-msg"></p>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button id="result-reset-btn">Play again</button>
+          <button id="result-check-btn" style="background:var(--bg-accent);color:var(--text-accent);border-color:var(--border-accent);">See answers ↗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORDS = [
+  { w: 'tall', t: 'tinggi', cat: 'FISIK' },
+  { w: 'short', t: 'pendek', cat: 'FISIK' },
+  { w: 'curly-haired', t: 'berambut keriting', cat: 'FISIK' },
+  { w: 'young', t: 'muda', cat: 'FISIK' },
+  { w: 'old', t: 'tua', cat: 'FISIK' },
+  { w: 'slim', t: 'langsing', cat: 'FISIK' },
+  { w: 'muscular', t: 'berotot', cat: 'FISIK' },
+  { w: 'straight-haired', t: 'berambut lurus', cat: 'FISIK' },
+  { w: 'kind', t: 'baik hati', cat: 'SIFAT' },
+  { w: 'friendly', t: 'ramah', cat: 'SIFAT' },
+  { w: 'funny', t: 'lucu', cat: 'SIFAT' },
+  { w: 'brave', t: 'berani', cat: 'SIFAT' },
+  { w: 'honest', t: 'jujur', cat: 'SIFAT' },
+  { w: 'patient', t: 'sabar', cat: 'SIFAT' },
+  { w: 'generous', t: 'murah hati', cat: 'SIFAT' },
+  { w: 'confident', t: 'percaya diri', cat: 'SIFAT' },
+  { w: 'peaceful', t: 'tenang', cat: 'TEMPAT' },
+  { w: 'crowded', t: 'ramai/padat', cat: 'TEMPAT' },
+  { w: 'spacious', t: 'luas', cat: 'TEMPAT' },
+  { w: 'cozy', t: 'nyaman', cat: 'TEMPAT' },
+  { w: 'quiet', t: 'sepi', cat: 'TEMPAT' },
+  { w: 'breezy', t: 'berangin sepoi', cat: 'TEMPAT' },
+  { w: 'scenic', t: 'berpemandangan indah', cat: 'TEMPAT' },
+  { w: 'shady', t: 'teduh', cat: 'TEMPAT' },
+  { w: 'shiny', t: 'berkilau', cat: 'BENDA' },
+  { w: 'soft', t: 'lembut', cat: 'BENDA' },
+  { w: 'fragile', t: 'rapuh', cat: 'BENDA' },
+  { w: 'smooth', t: 'halus', cat: 'BENDA' },
+  { w: 'rough', t: 'kasar', cat: 'BENDA' },
+  { w: 'valuable', t: 'berharga', cat: 'BENDA' },
+  { w: 'handmade', t: 'buatan tangan', cat: 'BENDA' },
+  { w: 'sturdy', t: 'kokoh', cat: 'BENDA' },
+];
+
+const CATS = ['FISIK','SIFAT','TEMPAT','BENDA'];
+let placed = {};
+let correctCount = 0;
+let timerInterval = null;
+let secondsLeft = 720;
+let gameOver = false;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  secondsLeft = 720;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    updateTimerDisplay();
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      showResult(false, 'timeout');
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  const tb = document.getElementById('timer-badge');
+  tb.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+  if (secondsLeft <= 60) {
+    tb.style.background = '#FCEBEB';
+    tb.style.color = '#A32D2D';
+    tb.style.borderColor = '#F7C1C1';
+  }
+}
+
+function updateScore() {
+  document.getElementById('score-badge').textContent = `✓ ${correctCount} / 32`;
+  CATS.forEach(cat => {
+    const inCat = Object.values(placed).filter(p => p.placedIn === cat && p.correct).length;
+    document.getElementById('count-' + cat).textContent = `${inCat}/8`;
+  });
+}
+
+function makeCard(wordObj) {
+  const el = document.createElement('div');
+  el.className = 'word-card';
+  el.dataset.word = wordObj.w;
+  el.innerHTML = `<span>${wordObj.w}</span><span class="translation">${wordObj.t}</span>`;
+  setupDrag(el, wordObj);
+  return el;
+}
+
+let dragWord = null;
+let dragEl = null;
+let clone = null;
+let startX, startY, offX, offY;
+
+function setupDrag(el, wordObj) {
+  el.addEventListener('mousedown', e => startDrag(e, el, wordObj));
+  el.addEventListener('touchstart', e => startDrag(e, el, wordObj), { passive: true });
+}
+
+function startDrag(e, el, wordObj) {
+  if (placed[wordObj.w] && placed[wordObj.w].correct) return;
+  if (gameOver) return;
+  e.preventDefault && e.preventDefault();
+
+  dragWord = wordObj;
+  dragEl = el;
+
+  const rect = el.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  offX = clientX - rect.left;
+  offY = clientY - rect.top;
+
+  clone = el.cloneNode(true);
+  clone.style.position = 'fixed';
+  clone.style.width = rect.width + 'px';
+  clone.style.pointerEvents = 'none';
+  clone.style.zIndex = 9999;
+  clone.style.opacity = '0.9';
+  clone.style.transform = 'scale(1.08) rotate(2deg)';
+  clone.style.left = (clientX - offX) + 'px';
+  clone.style.top = (clientY - offY) + 'px';
+  document.body.appendChild(clone);
+
+  el.style.opacity = '0.3';
+
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+  document.addEventListener('touchmove', onDragMove, { passive: false });
+  document.addEventListener('touchend', onDragEnd);
+
+  CATS.forEach(cat => {
+    document.getElementById('cat-' + cat).classList.remove('drag-over');
+  });
+}
+
+function onDragMove(e) {
+  if (!clone) return;
+  e.preventDefault && e.preventDefault();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  clone.style.left = (clientX - offX) + 'px';
+  clone.style.top = (clientY - offY) + 'px';
+
+  CATS.forEach(cat => {
+    const box = document.getElementById('cat-' + cat);
+    const r = box.getBoundingClientRect();
+    if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+      box.classList.add('drag-over');
+    } else {
+      box.classList.remove('drag-over');
+    }
+  });
+}
+
+function onDragEnd(e) {
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  document.removeEventListener('touchmove', onDragMove);
+  document.removeEventListener('touchend', onDragEnd);
+
+  const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+  const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+
+  let dropped = null;
+  CATS.forEach(cat => {
+    const box = document.getElementById('cat-' + cat);
+    box.classList.remove('drag-over');
+    const r = box.getBoundingClientRect();
+    if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+      dropped = cat;
+    }
+  });
+
+  if (clone) { clone.remove(); clone = null; }
+  if (dragEl) { dragEl.style.opacity = '1'; }
+
+  if (dropped && dragWord) {
+    dropWordInCategory(dragWord, dropped);
+  }
+
+  dragWord = null;
+  dragEl = null;
+}
+
+function dropWordInCategory(wordObj, cat) {
+  const isCorrect = wordObj.cat === cat;
+  const prevPlaced = placed[wordObj.w];
+
+  if (prevPlaced && prevPlaced.correct) return;
+
+  if (prevPlaced) {
+    const prevEl = document.querySelector(`#words-${prevPlaced.placedIn} [data-word="${wordObj.w}"]`);
+    if (prevEl) prevEl.remove();
+    if (!prevPlaced.correct) correctCount = Math.max(0, correctCount);
+  }
+
+  const el = makeCard(wordObj);
+  el.classList.add('placed');
+  if (isCorrect) {
+    el.classList.add('correct');
+    correctCount++;
+  } else {
+    el.classList.add('wrong');
+    setTimeout(() => {
+      el.classList.remove('wrong');
+    }, 400);
+  }
+
+  document.getElementById('words-' + cat).appendChild(el);
+
+  const bankEl = document.querySelector(`#word-bank [data-word="${wordObj.w}"]`);
+  if (bankEl) bankEl.style.visibility = 'hidden';
+
+  placed[wordObj.w] = { placedIn: cat, correct: isCorrect };
+  updateScore();
+
+  if (correctCount === 32) {
+    clearInterval(timerInterval);
+    setTimeout(() => showResult(true, 'complete'), 500);
+  }
+}
+
+function showResult(win, reason) {
+  gameOver = true;
+  const overlay = document.getElementById('result-overlay');
+  const emoji = document.getElementById('result-emoji');
+  const title = document.getElementById('result-title');
+  const msg = document.getElementById('result-msg');
+  const timeLeft = `${Math.floor(secondsLeft/60)}:${(secondsLeft%60).toString().padStart(2,'0')}`;
+
+  if (win) {
+    emoji.textContent = '🎉';
+    title.textContent = 'Excellent!';
+    msg.textContent = `All 32 words sorted correctly! Time left: ${timeLeft}`;
+  } else {
+    emoji.textContent = '⏰';
+    title.textContent = "Time's up!";
+    msg.textContent = `You sorted ${correctCount} out of 32 words correctly.`;
+  }
+  overlay.classList.add('show');
+}
+
+function initGame() {
+  gameOver = false;
+  correctCount = 0;
+  placed = {};
+
+  const bank = document.getElementById('word-bank');
+  const label = bank.querySelector('#word-bank-label');
+  bank.innerHTML = '';
+  bank.appendChild(label);
+
+  CATS.forEach(cat => {
+    document.getElementById('words-' + cat).innerHTML = '';
+    document.getElementById('count-' + cat).textContent = '0/8';
+  });
+
+  document.getElementById('score-badge').textContent = '✓ 0 / 32';
+  document.getElementById('result-overlay').classList.remove('show');
+
+  const tb = document.getElementById('timer-badge');
+  tb.style.background = '';
+  tb.style.color = '';
+  tb.style.borderColor = '';
+
+  const shuffled = shuffle(WORDS);
+  shuffled.forEach(w => {
+    bank.appendChild(makeCard(w));
+  });
+
+  startTimer();
+}
+
+document.getElementById('reset-btn').addEventListener('click', initGame);
+document.getElementById('result-reset-btn').addEventListener('click', initGame);
+document.getElementById('result-check-btn').addEventListener('click', () => {
+  sendPrompt('Tampilkan kunci jawaban kartu kata sifat: FISIK, SIFAT, TEMPAT, BENDA dengan semua 32 kata masing-masing kategorinya.');
+});
+
+initGame();
+</script>

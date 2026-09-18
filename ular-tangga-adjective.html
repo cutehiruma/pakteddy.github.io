@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snakes & Ladders — English Adjectives</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#185FA5;--blue-lt:#E6F1FB;--blue-dk:#0C447C;--blue-md:#B5D4F4;
+  --green:#3B6D11;--green-lt:#EAF3DE;--green-dk:#27500A;--green-md:#C0DD97;
+  --amber:#854F0B;--amber-lt:#FAEEDA;--amber-dk:#633806;--amber-md:#FAC775;
+  --red:#A32D2D;--red-lt:#FCEBEB;--red-dk:#791F1F;--red-md:#F7C1C1;
+  --purple:#534AB7;--purple-lt:#EEEDFE;--purple-dk:#3C3489;
+  --teal:#0F6E56;--teal-lt:#E1F5EE;--teal-dk:#085041;--teal-md:#9FE1CB;
+  --coral:#993C1D;--coral-lt:#FAECE7;--coral-md:#F5C4B3;
+  --pink:#993556;--pink-lt:#FBEAF0;--pink-md:#F4C0D1;
+  --gray:#5F5E5A;--gray-lt:#F1EFE8;--gray-dk:#444441;--gray-md:#D3D1C7;
+  --surface:#fff;--s1:#F8F8F6;--s2:#F1EFE8;
+  --text:#1a1a18;--t2:#5F5E5A;--t3:#888780;
+  --bdr:rgba(0,0,0,.1);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--s1);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* TOP BAR */
+#topbar{background:var(--surface);border-bottom:1px solid var(--bdr);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+#topbar h1{font-size:16px;font-weight:700}
+#topbar .sub{font-size:12px;color:var(--t2)}
+#grp-lbl{margin-left:auto;font-size:13px;font-weight:600;color:var(--blue);background:var(--blue-lt);padding:4px 12px;border-radius:20px}
+#newgame-btn{padding:5px 12px;border-radius:8px;border:1px solid var(--bdr);background:var(--s1);font-size:12px;cursor:pointer;color:var(--text)}
+#newgame-btn:hover{background:var(--s2)}
+
+/* MAIN */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* BOARD */
+#board-side{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;gap:6px}
+#board{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;width:100%;max-width:540px;aspect-ratio:1;border:2px solid var(--gray-md);border-radius:8px;overflow:hidden;background:var(--gray-md)}
+.cell{background:var(--surface);display:flex;flex-direction:column;padding:2px;position:relative;min-height:0;overflow:hidden}
+.cell.ldr{background:#EAF3DE}
+.cell.snk{background:#FCEBEB}
+.cell.st {background:#E6F1FB}
+.cell.fin{background:#FAEEDA}
+.cnum{font-size:9px;font-weight:700;color:var(--t3);line-height:1}
+.cico{font-size:10px;font-weight:700;line-height:1;text-align:center}
+.ldr .cico{color:#3B6D11}
+.snk .cico{color:#A32D2D}
+.fin .cico{color:#854F0B;font-size:9px}
+.ctoks{display:flex;flex-wrap:wrap;gap:1px;margin-top:auto;justify-content:center}
+.tok{width:14px;height:14px;border-radius:50%;border:1.5px solid #fff;font-size:7px;font-weight:800;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+#legend{display:flex;gap:10px;font-size:11px;color:var(--t2);flex-wrap:wrap;justify-content:center}
+.lgd{display:flex;align-items:center;gap:4px}
+.ldot{width:10px;height:10px;border-radius:2px}
+
+/* RIGHT PANEL */
+#panel{width:310px;background:var(--surface);border-left:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden}
+
+/* PLAYERS */
+#sec-players{padding:12px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+#sec-players h3{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.prow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px;border:1.5px solid transparent;transition:all .2s}
+.prow.active{border-color:currentColor}
+.pav{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0}
+.pname{font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ppos{font-size:11px;color:var(--t2)}
+.pscore{font-size:13px;font-weight:700}
+
+/* CONTROLS */
+#sec-ctrl{padding:12px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+#turn-lbl{font-size:12px;color:var(--t2);margin-bottom:2px}
+#turn-name{font-size:16px;font-weight:700;margin-bottom:10px}
+#dice-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+#dice{width:50px;height:50px;border-radius:10px;border:2px solid var(--bdr);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;transition:transform .1s}
+#dice.spin{animation:spin .4s ease}
+@keyframes spin{0%{transform:rotate(0) scale(1)}30%{transform:rotate(-20deg) scale(1.15)}65%{transform:rotate(15deg) scale(.9)}100%{transform:rotate(0) scale(1)}}
+#roll-btn{flex:1;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+#roll-btn:hover:not(:disabled){background:var(--blue-dk)}
+#roll-btn:disabled{background:var(--gray-md);color:var(--gray);cursor:not-allowed}
+#status{font-size:12px;color:var(--t2);line-height:1.4;min-height:16px}
+
+/* QUESTION — displayed as a popup overlay INSIDE the panel */
+#q-overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:center;justify-content:center;padding:12px}
+#q-overlay.show{display:flex}
+#q-box{background:var(--surface);border-radius:14px;padding:18px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow-y:auto}
+#q-header{display:flex;align-items:center;gap:8px}
+#q-cat{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+#q-player-lbl{font-size:12px;color:var(--t2);font-weight:500}
+#q-text{font-size:15px;font-weight:600;line-height:1.4;color:var(--text)}
+#q-opts{display:flex;flex-direction:column;gap:7px}
+.qopt{padding:10px 14px;border-radius:9px;border:1.5px solid var(--bdr);background:var(--surface);font-size:14px;cursor:pointer;text-align:left;color:var(--text);transition:all .15s;font-weight:500}
+.qopt:hover:not(:disabled){border-color:var(--blue);background:var(--blue-lt);color:var(--blue-dk)}
+.qopt.correct{border-color:var(--green)!important;background:var(--green-lt)!important;color:var(--green-dk)!important}
+.qopt.wrong  {border-color:var(--red)!important;  background:var(--red-lt)!important;  color:var(--red-dk)!important}
+.qopt:disabled{cursor:default}
+#q-feedback{font-size:13px;font-weight:500;padding:8px 12px;border-radius:8px;display:none}
+#q-feedback.ok {display:block;background:var(--green-lt);color:var(--green-dk)}
+#q-feedback.bad{display:block;background:var(--red-lt);color:var(--red-dk)}
+#q-next{padding:10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:none;width:100%}
+#q-next.show{display:block}
+#q-next:hover{background:var(--blue-dk)}
+
+/* LOG */
+#sec-log{flex:1;overflow-y:auto;padding:10px 12px}
+#sec-log h3{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.lentry{font-size:11px;color:var(--t2);padding:3px 0;border-bottom:.5px solid var(--bdr);line-height:1.4}
+.lentry b{color:var(--text)}
+
+/* SETUP OVERLAY */
+#setup{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200}
+#sbox{background:var(--surface);border-radius:16px;padding:28px;width:460px;max-width:95vw}
+#sbox h2{font-size:20px;font-weight:800;margin-bottom:4px}
+#sbox .sdesc{font-size:13px;color:var(--t2);margin-bottom:20px}
+.slbl{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;margin-top:14px}
+.sinput{width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid var(--bdr);font-size:14px;color:var(--text);outline:none;background:var(--surface)}
+.sinput:focus{border-color:var(--blue)}
+#np-row{display:flex;gap:8px;margin-bottom:4px}
+.npbtn{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--surface);font-size:16px;font-weight:700;cursor:pointer;color:var(--text);transition:all .15s}
+.npbtn.sel{border-color:var(--blue);background:var(--blue-lt);color:var(--blue-dk)}
+#pnames{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.nrow{display:flex;align-items:center;gap:8px}
+.ndot{width:18px;height:18px;border-radius:50%;flex-shrink:0}
+#start-btn{width:100%;padding:13px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+#start-btn:hover{background:var(--blue-dk)}
+
+/* WIN OVERLAY */
+#win{position:absolute;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:300}
+#win.show{display:flex}
+#wbox{background:var(--surface);border-radius:16px;padding:30px;text-align:center;max-width:380px;width:90vw}
+#wbox .wtrophy{font-size:60px;margin-bottom:6px}
+#wbox h2{font-size:24px;font-weight:800;margin-bottom:4px}
+#wbox .wsub{font-size:13px;color:var(--t2);margin-bottom:16px}
+#wtable{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:13px}
+#wtable td{padding:5px 8px;border-bottom:.5px solid var(--bdr)}
+#wtable td:last-child{text-align:right;color:var(--t2)}
+.wagain{width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.wagain:hover{background:var(--blue-dk)}
+.wnext{width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--bdr);background:var(--s1);font-size:14px;font-weight:600;cursor:pointer;color:var(--text)}
+.wnext:hover{background:var(--s2)}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <div id="topbar-title" style="font-size:16px;font-weight:700">Snakes &amp; Ladders — English Adjectives</div>
+    <div class="sub">Class IX · Speaking &amp; Descriptive Text · Pertemuan 3</div>
+  </div>
+  <div id="grp-lbl" style="display:none"></div>
+  <button id="newgame-btn" onclick="resetGame()" style="margin-left:auto">New game</button>
+</div>
+
+<div id="main">
+  <!-- BOARD SIDE -->
+  <div id="board-side">
+    <div id="board"></div>
+    <div id="legend">
+      <div class="lgd"><div class="ldot" style="background:#C0DD97;border:1px solid #3B6D11"></div>Ladder — naik</div>
+      <div class="lgd"><div class="ldot" style="background:#F7C1C1;border:1px solid #A32D2D"></div>Snake — turun</div>
+      <div class="lgd"><div class="ldot" style="background:#B5D4F4;border:1px solid #185FA5"></div>Start</div>
+      <div class="lgd"><div class="ldot" style="background:#FAC775;border:1px solid #854F0B"></div>Finish</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="panel" style="position:relative">
+    <div id="sec-players">
+      <h3>Players</h3>
+      <div id="plist"></div>
+    </div>
+
+    <div id="sec-ctrl">
+      <div id="turn-lbl">Current turn</div>
+      <div id="turn-name" style="color:var(--blue)">—</div>
+      <div id="dice-row">
+        <div id="dice">🎲</div>
+        <button id="roll-btn" onclick="doRoll()">Roll the dice</button>
+      </div>
+      <div id="status">Set up the game to start.</div>
+    </div>
+
+    <div id="sec-log">
+      <h3>Game log</h3>
+      <div id="log-list"></div>
+    </div>
+
+    <!-- QUESTION POPUP (sits inside panel, overlay) -->
+    <div id="q-overlay">
+      <div id="q-box">
+        <div id="q-header">
+          <div id="q-cat"></div>
+          <div id="q-player-lbl"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em">Answer this question!</div>
+        <div id="q-text"></div>
+        <div id="q-opts"></div>
+        <div id="q-feedback"></div>
+        <button id="q-next" onclick="endTurn()">Next player →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP OVERLAY -->
+<div id="setup">
+  <div id="sbox">
+    <h2>🐍 Snakes &amp; Ladders</h2>
+    <div class="sdesc">English Adjectives · Class IX · Pertemuan 3</div>
+    <div class="slbl">Group name</div>
+    <input class="sinput" id="grp-input" type="text" value="Group 1" placeholder="e.g. Group 1"/>
+    <div class="slbl">Number of players</div>
+    <div id="np-row">
+      <button class="npbtn" onclick="setNP(2)">2</button>
+      <button class="npbtn" onclick="setNP(3)">3</button>
+      <button class="npbtn sel" onclick="setNP(4)">4</button>
+    </div>
+    <div class="slbl">Player names</div>
+    <div id="pnames"></div>
+    <button id="start-btn" onclick="startGame()">Start game ▶</button>
+  </div>
+</div>
+
+<!-- WIN OVERLAY -->
+<div id="win">
+  <div id="wbox">
+    <div class="wtrophy">🏆</div>
+    <h2 id="win-title"></h2>
+    <div class="wsub" id="win-sub"></div>
+    <table id="wtable"><tbody id="wtbody"></tbody></table>
+    <button class="wagain" onclick="resetGame()">Play again (same group)</button>
+    <button class="wnext" onclick="nextGroup()">Next group →</button>
+  </div>
+</div>
+
+<script>
+const SNAKES  = {16:6,47:26,49:11,56:53,62:19,64:60,87:24,93:73,95:75,99:78};
+const LADDERS = {4:14,9:31,20:38,28:84,40:59,51:67,63:81,71:91};
+const DFACENAMES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+const PCOLORS = ['#185FA5','#3B6D11','#993C1D','#534AB7'];
+const PBG    = ['#E6F1FB','#EAF3DE','#FAECE7','#EEEDFE'];
+const PTXT   = ['#0C447C','#27500A','#712B13','#3C3489'];
+const CATCOL = {
+  FISIK: {bg:'#E6F1FB',color:'#0C447C',border:'#B5D4F4'},
+  SIFAT: {bg:'#FAEEDA',color:'#633806',border:'#FAC775'},
+  TEMPAT:{bg:'#E1F5EE',color:'#085041',border:'#9FE1CB'},
+  BENDA: {bg:'#FBEAF0',color:'#72243E',border:'#F4C0D1'},
+};
+
+const QS = [
+  {q:"Which word describes physical appearance?",opts:["tall","honest","quiet","shiny"],ans:0,cat:"FISIK"},
+  {q:"'Friendly' means...",opts:["mudah marah","ramah","pendek","kasar"],ans:1,cat:"SIFAT"},
+  {q:"Which adjective describes a place?",opts:["muscular","brave","spacious","rough"],ans:2,cat:"TEMPAT"},
+  {q:"Which word means 'berkilau'?",opts:["soft","fragile","shiny","sturdy"],ans:2,cat:"BENDA"},
+  {q:"'Curly-haired' describes someone's...",opts:["personality","place","hair","object"],ans:2,cat:"FISIK"},
+  {q:"Which adjective describes personality?",opts:["slim","crowded","patient","smooth"],ans:2,cat:"SIFAT"},
+  {q:"A 'cozy' room feels...",opts:["loud and bright","dark and cold","warm and comfortable","big and empty"],ans:2,cat:"TEMPAT"},
+  {q:"'Fragile' means an object is easily...",opts:["broken","cleaned","used","found"],ans:0,cat:"BENDA"},
+  {q:"Which is NOT a physical adjective?",opts:["tall","slim","honest","muscular"],ans:2,cat:"FISIK"},
+  {q:"'Generous' means...",opts:["pelit","murah hati","pendiam","pemalas"],ans:1,cat:"SIFAT"},
+  {q:"A 'breezy' place has...",opts:["lots of trees","gentle wind","many people","bright lights"],ans:1,cat:"TEMPAT"},
+  {q:"'Sturdy' means an object is...",opts:["fragile","beautiful","strong and solid","expensive"],ans:2,cat:"BENDA"},
+  {q:"'Straight-haired' describes...",opts:["a place","someone's hair type","a personality","an object's texture"],ans:1,cat:"FISIK"},
+  {q:"Which adjective means 'berani'?",opts:["honest","brave","kind","patient"],ans:1,cat:"SIFAT"},
+  {q:"A 'scenic' place has...",opts:["many buildings","a beautiful view","crowded streets","quiet roads"],ans:1,cat:"TEMPAT"},
+  {q:"'Handmade' means something was made by...",opts:["machine","computer","hands","factory"],ans:2,cat:"BENDA"},
+  {q:"Which describes how someone looks physically?",opts:["confident","peaceful","young","valuable"],ans:2,cat:"FISIK"},
+  {q:"'Honest' means someone always...",opts:["lies","tells the truth","stays quiet","works hard"],ans:1,cat:"SIFAT"},
+  {q:"A 'crowded' place has...",opts:["very few people","a lot of people","nice scenery","pleasant wind"],ans:1,cat:"TEMPAT"},
+  {q:"'Smooth' describes a surface that is...",opts:["rough and bumpy","flat and even","hard and heavy","cold and wet"],ans:1,cat:"BENDA"},
+  {q:"'Muscular' means someone has...",opts:["thin arms","strong muscles","curly hair","slim body"],ans:1,cat:"FISIK"},
+  {q:"Which adjective means 'percaya diri'?",opts:["funny","patient","confident","generous"],ans:2,cat:"SIFAT"},
+  {q:"A 'peaceful' place is...",opts:["noisy","calm and quiet","full of people","very sunny"],ans:1,cat:"TEMPAT"},
+  {q:"'Valuable' means something is very...",opts:["heavy","old","precious / worth a lot","rough"],ans:2,cat:"BENDA"},
+  {q:"'Slim' describes a person's...",opts:["height","weight / body shape","age","personality"],ans:1,cat:"FISIK"},
+  {q:"'Kind' and 'friendly' are both adjectives for...",opts:["physical appearance","personality","place","object"],ans:1,cat:"SIFAT"},
+  {q:"'Shady' means a place has...",opts:["bright sunshine","lots of shadow / shade","heavy rain","strong wind"],ans:1,cat:"TEMPAT"},
+  {q:"'Rough' describes a surface that is...",opts:["smooth and even","not smooth, bumpy","shiny and clean","soft and light"],ans:1,cat:"BENDA"},
+  {q:"Which word means 'pendek' (short in height)?",opts:["slim","short","young","old"],ans:1,cat:"FISIK"},
+  {q:"A 'funny' person often makes people...",opts:["sad","angry","laugh","scared"],ans:2,cat:"SIFAT"},
+  {q:"'Quiet' can describe a place that is...",opts:["very noisy","full of music","without much sound","crowded"],ans:2,cat:"TEMPAT"},
+  {q:"'Soft' describes an object that is...",opts:["hard","rough","easy to press / not firm","heavy"],ans:2,cat:"BENDA"},
+];
+
+let numPlayers = 4;
+let players = [];
+let cur = 0;
+let usedQs = [];
+let gameOn = false;
+let waitingQ = false;
+let curQ = null;
+
+/* ── SETUP ── */
+function setNP(n) {
+  numPlayers = n;
+  document.querySelectorAll('.npbtn').forEach((b,i)=>b.classList.toggle('sel',(i+2)===n));
+  buildNameInputs();
+}
+
+function buildNameInputs() {
+  const defaults = ['Player 1','Player 2','Player 3','Player 4'];
+  const c = document.getElementById('pnames');
+  c.innerHTML = '';
+  for (let i = 0; i < numPlayers; i++) {
+    const row = document.createElement('div');
+    row.className = 'nrow';
+    row.innerHTML = `<div class="ndot" style="background:${PCOLORS[i]}"></div>
+      <input class="sinput" id="ni${i}" type="text" value="${defaults[i]}" style="flex:1;padding:7px 10px;font-size:13px"/>`;
+    c.appendChild(row);
+  }
+}
+
+function startGame() {
+  const grpName = document.getElementById('grp-input').value.trim() || 'Group 1';
+  document.getElementById('grp-lbl').textContent = grpName;
+  document.getElementById('grp-lbl').style.display = '';
+  window._grpName = grpName;
+
+  players = [];
+  for (let i = 0; i < numPlayers; i++) {
+    const el = document.getElementById('ni'+i);
+    players.push({name: el ? el.value.trim()||`Player ${i+1}` : `Player ${i+1}`, pos:0, score:0, i});
+  }
+
+  cur = 0; usedQs = []; gameOn = true; waitingQ = false; curQ = null;
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('win').classList.remove('show');
+  document.getElementById('log-list').innerHTML = '';
+
+  buildBoard();
+  renderBoard();
+  renderPlayers();
+  setTurnUI();
+  log(`${grpName} started the game!`);
+}
+
+/* ── BOARD ── */
+function buildBoard() {
+  const bd = document.getElementById('board');
+  bd.innerHTML = '';
+  for (let row = 9; row >= 0; row--) {
+    for (let col = 0; col < 10; col++) {
+      const n = row%2===1 ? row*10+(9-col)+1 : row*10+col+1;
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = 'c'+n;
+      if (n===1) cell.classList.add('st');
+      if (n===100) cell.classList.add('fin');
+      if (LADDERS[n]) cell.classList.add('ldr');
+      if (SNAKES[n]) cell.classList.add('snk');
+
+      const num = document.createElement('div');
+      num.className = 'cnum';
+      num.textContent = n;
+      cell.appendChild(num);
+
+      const ico = document.createElement('div');
+      ico.className = 'cico';
+      if (LADDERS[n]) ico.textContent = '▲+'+(LADDERS[n]-n);
+      else if (SNAKES[n]) ico.textContent = '▼-'+(n-SNAKES[n]);
+      else if (n===100) ico.textContent = 'FINISH';
+      else if (n===1) ico.textContent = 'START';
+      if (ico.textContent) cell.appendChild(ico);
+
+      const toks = document.createElement('div');
+      toks.className = 'ctoks';
+      toks.id = 't'+n;
+      cell.appendChild(toks);
+      bd.appendChild(cell);
+    }
+  }
+}
+
+function renderBoard() {
+  document.querySelectorAll('.ctoks').forEach(el=>el.innerHTML='');
+  players.forEach(p=>{
+    if (p.pos < 1) return;
+    const el = document.getElementById('t'+p.pos);
+    if (!el) return;
+    const tok = document.createElement('div');
+    tok.className = 'tok';
+    tok.style.background = PCOLORS[p.i];
+    tok.textContent = p.name[0].toUpperCase();
+    el.appendChild(tok);
+  });
+}
+
+function renderPlayers() {
+  const list = document.getElementById('plist');
+  list.innerHTML = '';
+  players.forEach((p,idx)=>{
+    const row = document.createElement('div');
+    row.className = 'prow'+(idx===cur?' active':'');
+    row.style.background = idx===cur ? PBG[p.i] : 'transparent';
+    row.style.color = PCOLORS[p.i];
+    row.innerHTML = `<div class="pav" style="background:${PCOLORS[p.i]}">${p.name[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div class="pname">${p.name}</div>
+        <div class="ppos">Square ${p.pos===0?'Start':p.pos}</div>
+      </div>
+      <div class="pscore" style="color:${PCOLORS[p.i]}">${p.score}pt</div>`;
+    list.appendChild(row);
+  });
+}
+
+function setTurnUI() {
+  const p = players[cur];
+  document.getElementById('turn-name').textContent = p.name;
+  document.getElementById('turn-name').style.color = PCOLORS[p.i];
+  document.getElementById('roll-btn').disabled = false;
+  document.getElementById('status').textContent = `${p.name}'s turn — roll the dice!`;
+  closeQ();
+}
+
+/* ── DICE & MOVE ── */
+function doRoll() {
+  if (!gameOn || waitingQ) return;
+  const val = Math.floor(Math.random()*6)+1;
+  const dice = document.getElementById('dice');
+  dice.classList.add('spin');
+  document.getElementById('roll-btn').disabled = true;
+  document.getElementById('status').textContent = 'Rolling...';
+
+  setTimeout(()=>{
+    dice.classList.remove('spin');
+    dice.textContent = DFACENAMES[val-1];
+    const p = players[cur];
+    const dest = Math.min(p.pos+val, 100);
+    document.getElementById('status').textContent = `${p.name} rolled ${val} → moving to ${dest}`;
+    setTimeout(()=>move(dest), 600);
+  }, 450);
+}
+
+function move(dest) {
+  const p = players[cur];
+  p.pos = dest;
+  renderBoard();
+  renderPlayers();
+
+  if (dest === 100) {
+    log(`${p.name} reached 100 — WINNER!`);
+    p.score += 10;
+    showWin();
+    return;
+  }
+
+  if (LADDERS[dest]) {
+    const top = LADDERS[dest];
+    log(`${p.name} landed on ${dest} — LADDER! Climbs to ${top}`);
+    document.getElementById('status').textContent = `LADDER! ${p.name} climbs from ${dest} to ${top}!`;
+    p.score += 2;
+    setTimeout(()=>{ p.pos=top; renderBoard(); renderPlayers(); openQ('ladder',top); }, 900);
+  } else if (SNAKES[dest]) {
+    const bot = SNAKES[dest];
+    log(`${p.name} landed on ${dest} — SNAKE! Slides to ${bot}`);
+    document.getElementById('status').textContent = `SNAKE! ${p.name} slides from ${dest} to ${bot}!`;
+    setTimeout(()=>{ p.pos=bot; renderBoard(); renderPlayers(); openQ('snake',bot); }, 900);
+  } else {
+    openQ('normal', dest);
+  }
+}
+
+/* ── QUESTION ── */
+function pickQ() {
+  if (usedQs.length >= QS.length) usedQs = [];
+  const avail = QS.map((_,i)=>i).filter(i=>!usedQs.includes(i));
+  const idx = avail[Math.floor(Math.random()*avail.length)];
+  usedQs.push(idx);
+  return QS[idx];
+}
+
+function openQ(context, square) {
+  waitingQ = true;
+  curQ = pickQ();
+  const p = players[cur];
+  const cc = CATCOL[curQ.cat];
+
+  document.getElementById('q-cat').textContent = curQ.cat;
+  document.getElementById('q-cat').style.cssText = `background:${cc.bg};color:${cc.color};border:1px solid ${cc.border};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px`;
+  document.getElementById('q-player-lbl').textContent = `${p.name}, answer this!`;
+  document.getElementById('q-text').textContent = curQ.q;
+  document.getElementById('q-feedback').className = '';
+  document.getElementById('q-feedback').textContent = '';
+  document.getElementById('q-next').className = 'q-next';
+
+  const optsDiv = document.getElementById('q-opts');
+  optsDiv.innerHTML = '';
+  curQ.opts.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'qopt';
+    btn.textContent = `${String.fromCharCode(65+i)}. ${opt}`;
+    btn.onclick = ()=>answer(i, context);
+    optsDiv.appendChild(btn);
+  });
+
+  document.getElementById('q-overlay').className = 'show';
+  document.getElementById('status').textContent = `${p.name}, a question appeared! Answer it.`;
+}
+
+function closeQ() {
+  document.getElementById('q-overlay').className = '';
+  waitingQ = false;
+  curQ = null;
+}
+
+function answer(chosen, context) {
+  if (!waitingQ) return;
+  waitingQ = false;
+
+  const correct = chosen === curQ.ans;
+  const p = players[cur];
+
+  document.querySelectorAll('.qopt').forEach((btn,i)=>{
+    btn.disabled = true;
+    if (i===curQ.ans) btn.classList.add('correct');
+    else if (i===chosen && !correct) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('q-feedback');
+  if (correct) {
+    const bonus = context==='ladder' ? 5 : context==='snake' ? 3 : 2;
+    p.score += bonus;
+    fb.className = 'ok';
+    fb.textContent = `Correct! +${bonus} points. Total: ${p.score} pts`;
+    log(`${p.name} correct (+${bonus}pt) → ${p.score}pt`);
+  } else {
+    if (context==='snake') p.score = Math.max(0, p.score-1);
+    const correctAns = curQ.opts[curQ.ans];
+    fb.className = 'bad';
+    fb.textContent = `Wrong! Answer: "${correctAns}"`;
+    log(`${p.name} wrong. Answer: "${curQ.opts[curQ.ans]}"`);
+  }
+
+  renderPlayers();
+  document.getElementById('q-next').className = 'q-next show';
+}
+
+function endTurn() {
+  closeQ();
+  cur = (cur+1) % players.length;
+  renderPlayers();
+  setTurnUI();
+  log(`--- ${players[cur].name}'s turn ---`);
+}
+
+/* ── WIN ── */
+function showWin() {
+  gameOn = false;
+  closeQ();
+  const sorted = [...players].sort((a,b)=>b.score-a.score);
+  document.getElementById('win-title').textContent = `${sorted[0].name} wins!`;
+  document.getElementById('win-sub').textContent = `${window._grpName||'Group'} final scores`;
+  const tbody = document.getElementById('wtbody');
+  tbody.innerHTML = '';
+  const medals = ['🥇','🥈','🥉',''];
+  sorted.forEach((p,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${PCOLORS[p.i]};margin-right:6px;vertical-align:middle"></span>${medals[i]||''} ${p.name}</td><td>${p.score} pts</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('win').classList.add('show');
+}
+
+/* ── RESET ── */
+function resetGame() {
+  document.getElementById('win').classList.remove('show');
+  document.getElementById('setup').style.display = 'flex';
+  closeQ();
+  gameOn = false;
+}
+
+function nextGroup() {
+  document.getElementById('win').classList.remove('show');
+  const inp = document.getElementById('grp-input');
+  const m = (window._grpName||'Group 1').match(/(\d+)$/);
+  inp.value = m ? (window._grpName||'').replace(/\d+$/, String(parseInt(m[1])+1)) : (window._grpName||'Group')+' 2';
+  document.getElementById('setup').style.display = 'flex';
+  gameOn = false;
+}
+
+/* ── LOG ── */
+function log(msg) {
+  const list = document.getElementById('log-list');
+  const e = document.createElement('div');
+  e.className = 'lentry';
+  e.innerHTML = msg;
+  list.insertBefore(e, list.firstChild);
+  while (list.children.length > 60) list.lastChild.remove();
+}
+
+/* ── INIT ── */
+setNP(4);
+</script>
+</body>
+</html>
