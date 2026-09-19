@@ -13,12 +13,48 @@
       body {
         font-family: "Plus Jakarta Sans", sans-serif;
         scroll-behavior: smooth;
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(99, 102, 241, 0.08),
+            transparent 30%
+          ),
+          #f8fafc;
       }
       .game-card:hover {
         transform: translateY(-8px);
         box-shadow:
           0 20px 25px -5px rgb(0 0 0 / 0.1),
           0 8px 10px -6px rgb(0 0 0 / 0.1);
+      }
+      .filter-btn {
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #334155;
+        border-radius: 9999px;
+        padding: 0.7rem 1.2rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        transition: all 0.2s ease;
+      }
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
+      }
+      .difficulty-section.hidden {
+        display: none;
+      }
+      .social-link {
+        transition:
+          transform 0.2s ease,
+          color 0.2s ease;
+      }
+      .social-link:hover {
+        color: #4f46e5;
+        transform: translateY(-2px);
       }
     </style>
   </head>
@@ -50,257 +86,351 @@
         >
       </h1>
       <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-        Halo semuanya! Pilih salah satu game di bawah ini untuk mengasah
-        kemampuanmu. Tekan tombol main dan selesaikan tantangannya!
+        Halo semuanya! Pilih game yang sesuai dengan level Bahasa Inggrismu hari
+        ini. Mulai dari yang mudah, lalu naik ke level yang lebih menantang saat
+        kemampuanmu bertambah.
       </p>
     </header>
 
     <!-- Kontainer Utama Game -->
     <main class="max-w-7xl mx-auto px-6 pb-24">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- GAME 1: Silakan Copy-Paste bagian ini untuk menambah game baru -->
+      <section class="mb-10">
         <div
-          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+          class="rounded-[2rem] border border-indigo-100 bg-white/80 p-6 shadow-sm backdrop-blur-sm"
         >
           <div
-            class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-blue-500 to-blue-600 mb-6 flex items-center justify-center text-white"
+            class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between"
           >
-            <i data-lucide="calculator" size="56"></i>
-          </div>
-          <div class="px-2 flex-grow">
-            <span
-              class="text-xs font-bold uppercase tracking-widest text-blue-500 mb-2 block"
-              >Belajar Kosa Kata</span
-            >
-            <h3 class="text-2xl font-bold mb-3">Vocabulary Adventure Quest</h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-              Berpetualang hindari bahaya sambil belajar kosa kata
-            </p>
-          </div>
-          <a
-            href="vocab-adv-quest.html"
-            target="_blank"
-            class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
-          >
-            Mulai Bertualang <i data-lucide="play-circle" size="18"></i>
-          </a>
-        </div>
-
-        <!-- GAME 2 -->
-        <div
-          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
-        >
-          <div
-            class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-emerald-500 to-emerald-600 mb-6 flex items-center justify-center text-white"
-          >
-            <i data-lucide="languages" size="56"></i>
-          </div>
-          <div class="px-2 flex-grow">
-            <span
-              class="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-2 block"
-              >Regular & Irregular Verb</span
-            >
-            <h3 class="text-2xl font-bold mb-3">Galactic Verb Sorting</h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-              Pelajari Past Verb Bersama Teman
-            </p>
-          </div>
-          <a
-            href="galactic-verb-sorting.html"
-            target="_blank"
-            class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
-          >
-            Main Sekarang <i data-lucide="play-circle" size="18"></i>
-          </a>
-        </div>
-
-        <!-- GAME 3 -->
-        <div
-          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
-        >
-          <div
-            class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-purple-500 to-purple-600 mb-6 flex items-center justify-center text-white"
-          >
-            <i data-lucide="microscope" size="56"></i>
-          </div>
-          <div class="px-2 flex-grow">
-            <span
-              class="text-xs font-bold uppercase tracking-widest text-purple-500 mb-2 block"
-              >Buat Kalimat Menarik</span
-            >
-            <h3 class="text-2xl font-bold mb-3">Sentence Scramble Race</h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-              Susun kata-kata yang acak menjadi kalimat yang sempurna dan
-              bermakna.
-            </p>
-          </div>
-          <a
-            href="sentence-scramble-race.html"
-            target="_blank"
-            class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
-          >
-            Main Sekarang <i data-lucide="play-circle" size="18"></i>
-          </a>
-        </div>
-
-        <!-- GAME 4 -->
-        <div
-          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
-        >
-          <div
-            class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-orange-500 to-red-600 mb-6 flex items-center justify-center text-white relative overflow-hidden"
-          >
+            <div>
+              <p
+                class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500"
+              >
+                Level yang disarankan
+              </p>
+              <h2 class="mt-2 text-2xl font-extrabold text-slate-900">
+                Pilih game sesuai kemampuan Bahasa Inggrismu
+              </h2>
+            </div>
             <div
-              class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
-            ></div>
-            <i data-lucide="swords" size="56" class="relative z-10"></i>
-          </div>
-          <div class="px-2 flex-grow">
-            <span
-              class="text-xs font-bold uppercase tracking-widest text-orange-600 mb-2 block"
-              >Bahasa Inggris</span
+              class="rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700"
             >
-            <h3 class="text-2xl font-bold mb-3">
-              Tower Catapult: Vocab Battle
-            </h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-              Hancurkan menara lawan dengan ketepatan kosakata bahasa Inggris!
-            </p>
+              Pemula → Menengah → Mahir
+            </div>
           </div>
-          <a
-            href="catapult-game.html"
-            target="_blank"
-            class="w-full bg-orange-600 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
-          >
-            Mulai Pertempuran <i data-lucide="target" size="18"></i>
-          </a>
-        </div>
 
-        <!-- GAME 5 -->
-        <div
-          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
-        >
-          <div
-            class="w-full h-48 rounded-[2rem] bg-gradient-to-tr from-green-400 to-cyan-500 mb-6 flex items-center justify-center text-white relative overflow-hidden"
-          >
-            <div
-              class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
-            ></div>
-            <i data-lucide="castle" size="56" class="relative z-10"></i>
+          <div class="flex flex-wrap gap-3">
+            <button class="filter-btn active" data-filter="all">
+              Semua Level
+            </button>
+            <button class="filter-btn" data-filter="pemula">Pemula</button>
+            <button class="filter-btn" data-filter="menengah">Menengah</button>
+            <button class="filter-btn" data-filter="mahir">Mahir</button>
           </div>
-          <div class="px-2 flex-grow">
-            <span
-              class="text-xs font-bold uppercase tracking-widest text-green-400 mb-2 block"
-              >Narrative Text</span
-            >
-            <h3 class="text-2xl font-bold mb-3">Escape Room: Narrative</h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-              Bebaskan dirimu dari jebakan dunia dongeng
-            </p>
-          </div>
-          <a
-            href="escape-room-narrative.html"
-            target="_blank"
-            class="w-full bg-green-400 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
-          >
-            Mulai Petualangan <i data-lucide="candy" size="18"></i>
-          </a>
         </div>
+      </section>
 
-        <!-- GAME 6 -->
-        <div
-          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
-        >
-          <div
-            class="w-full h-48 rounded-[2rem] bg-gradient-to-r from-cyan-500 via-sky-500 to-violet-600 mb-6 flex items-center justify-center text-white relative overflow-hidden"
-          >
-            <div
-              class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
-            ></div>
-            <i data-lucide="album" size="56" class="relative z-10"></i>
-          </div>
-          <div class="px-2 flex-grow">
+      <div class="space-y-12">
+        <section class="difficulty-section" data-difficulty="pemula">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p
+                class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-500"
+              >
+                Level 1
+              </p>
+              <h3 class="text-3xl font-extrabold text-slate-900">Pemula</h3>
+            </div>
             <span
-              class="text-xs font-bold uppercase tracking-widest text-fuchsia-500 mb-2 block"
-              >Narrative Text</span
+              class="rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700"
             >
-            <h3 class="text-2xl font-bold mb-3">Story Builder</h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-              Buat cerita menarik
-            </p>
+              Kosa kata dan struktur dasar
+            </span>
           </div>
-          <a
-            href="storybuilder-game.html"
-            target="_blank"
-            class="w-full bg-fuchsia-500 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
-          >
-            Mulai Petualangan <i data-lucide="step-forward" size="18"></i>
-          </a>
-        </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div
+              class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+            >
+              <div
+                class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-blue-500 to-blue-600 mb-6 flex items-center justify-center text-white"
+              >
+                <i data-lucide="calculator" size="56"></i>
+              </div>
+              <div class="px-2 flex-grow">
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-blue-500 mb-2 block"
+                  >Belajar Kosa Kata</span
+                >
+                <h3 class="text-2xl font-bold mb-3">
+                  Vocabulary Adventure Quest
+                </h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Berpetualang hindari bahaya sambil belajar kosa kata
+                </p>
+              </div>
+              <a
+                href="vocab-adv-quest.html"
+                target="_blank"
+                class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
+              >
+                Mulai Bertualang <i data-lucide="play-circle" size="18"></i>
+              </a>
+            </div>
 
-        <!-- GAME 7 -->
-        <div
-          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
-        >
-          <div
-            class="w-full h-48 rounded-[2rem] bg-gradient-to-r from-violet-500 via-pink-500 to-rose-500 mb-6 flex items-center justify-center text-white relative overflow-hidden"
-          >
             <div
-              class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
-            ></div>
-            <i data-lucide="album" size="56" class="relative z-10"></i>
-          </div>
-          <div class="px-2 flex-grow">
-            <span
-              class="text-xs font-bold uppercase tracking-widest text-fuchsia-500 mb-2 block"
-              >Adjective</span
+              class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
             >
-            <h3 class="text-2xl font-bold mb-3">Adjective Snake & Ladder</h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-              Bermain ular tangga sambil belajar kata sifat
-            </p>
-          </div>
-          <a
-            href="ular-tangga-adjective.html"
-            target="_blank"
-            class="w-full bg-fuchsia-500 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
-          >
-            Mulai Bermain <i data-lucide="step-forward" size="18"></i>
-          </a>
-        </div>
+              <div
+                class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-emerald-500 to-emerald-600 mb-6 flex items-center justify-center text-white"
+              >
+                <i data-lucide="languages" size="56"></i>
+              </div>
+              <div class="px-2 flex-grow">
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-2 block"
+                  >Regular & Irregular Verb</span
+                >
+                <h3 class="text-2xl font-bold mb-3">Galactic Verb Sorting</h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Pelajari Past Verb Bersama Teman
+                </p>
+              </div>
+              <a
+                href="galactic-verb-sorting.html"
+                target="_blank"
+                class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
+              >
+                Main Sekarang <i data-lucide="play-circle" size="18"></i>
+              </a>
+            </div>
 
-        <!-- GAME 8 -->
-        <div
-          class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
-        >
-          <div
-            class="w-full h-48 rounded-[2rem] bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 mb-6 flex items-center justify-center text-white relative overflow-hidden"
-          >
             <div
-              class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
-            ></div>
-            <i data-lucide="folder-archive" size="56" class="relative z-10"></i>
-          </div>
-          <div class="px-2 flex-grow">
-            <span
-              class="text-xs font-bold uppercase tracking-widest text-orange-600 mb-2 block"
-              >Adjective Categories</span
+              class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
             >
-            <h3 class="text-2xl font-bold mb-3">
-              Word Sort — Adjective Categories
-            </h3>
-            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
-              Susun kata ke dalam kelompok kategori adjective yang tepat.
-            </p>
+              <div
+                class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-purple-500 to-purple-600 mb-6 flex items-center justify-center text-white"
+              >
+                <i data-lucide="microscope" size="56"></i>
+              </div>
+              <div class="px-2 flex-grow">
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-purple-500 mb-2 block"
+                  >Buat Kalimat Menarik</span
+                >
+                <h3 class="text-2xl font-bold mb-3">Sentence Scramble Race</h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Susun kata-kata yang acak menjadi kalimat yang sempurna dan
+                  bermakna.
+                </p>
+              </div>
+              <a
+                href="sentence-scramble-race.html"
+                target="_blank"
+                class="w-full bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2"
+              >
+                Main Sekarang <i data-lucide="play-circle" size="18"></i>
+              </a>
+            </div>
           </div>
-          <a
-            href="word_sort_game_adjective_categories.html"
-            target="_blank"
-            class="w-full bg-orange-500 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
-          >
-            Main Sekarang <i data-lucide="play-circle" size="18"></i>
-          </a>
-        </div>
+        </section>
+
+        <section class="difficulty-section" data-difficulty="menengah">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p
+                class="text-xs font-bold uppercase tracking-[0.2em] text-amber-500"
+              >
+                Level 2
+              </p>
+              <h3 class="text-3xl font-extrabold text-slate-900">Menengah</h3>
+            </div>
+            <span
+              class="rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700"
+            >
+              Memahami konteks, cerita, dan kosakata lebih luas
+            </span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div
+              class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+            >
+              <div
+                class="w-full h-48 rounded-[2rem] bg-gradient-to-br from-orange-500 to-red-600 mb-6 flex items-center justify-center text-white relative overflow-hidden"
+              >
+                <div
+                  class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
+                ></div>
+                <i data-lucide="swords" size="56" class="relative z-10"></i>
+              </div>
+              <div class="px-2 flex-grow">
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-orange-600 mb-2 block"
+                  >Bahasa Inggris</span
+                >
+                <h3 class="text-2xl font-bold mb-3">
+                  Tower Catapult: Vocab Battle
+                </h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Hancurkan menara lawan dengan ketepatan kosakata bahasa
+                  Inggris!
+                </p>
+              </div>
+              <a
+                href="catapult-game.html"
+                target="_blank"
+                class="w-full bg-orange-600 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
+              >
+                Mulai Pertempuran <i data-lucide="target" size="18"></i>
+              </a>
+            </div>
+
+            <div
+              class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+            >
+              <div
+                class="w-full h-48 rounded-[2rem] bg-gradient-to-tr from-green-400 to-cyan-500 mb-6 flex items-center justify-center text-white relative overflow-hidden"
+              >
+                <div
+                  class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
+                ></div>
+                <i data-lucide="castle" size="56" class="relative z-10"></i>
+              </div>
+              <div class="px-2 flex-grow">
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-green-400 mb-2 block"
+                  >Narrative Text</span
+                >
+                <h3 class="text-2xl font-bold mb-3">Escape Room: Narrative</h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Bebaskan dirimu dari jebakan dunia dongeng
+                </p>
+              </div>
+              <a
+                href="escape-room-narrative.html"
+                target="_blank"
+                class="w-full bg-green-400 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
+              >
+                Mulai Petualangan <i data-lucide="candy" size="18"></i>
+              </a>
+            </div>
+
+            <div
+              class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+            >
+              <div
+                class="w-full h-48 rounded-[2rem] bg-gradient-to-r from-cyan-500 via-sky-500 to-violet-600 mb-6 flex items-center justify-center text-white relative overflow-hidden"
+              >
+                <div
+                  class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
+                ></div>
+                <i data-lucide="album" size="56" class="relative z-10"></i>
+              </div>
+              <div class="px-2 flex-grow">
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-fuchsia-500 mb-2 block"
+                  >Narrative Text</span
+                >
+                <h3 class="text-2xl font-bold mb-3">Story Builder</h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Buat cerita menarik
+                </p>
+              </div>
+              <a
+                href="storybuilder-game.html"
+                target="_blank"
+                class="w-full bg-fuchsia-500 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
+              >
+                Mulai Petualangan <i data-lucide="step-forward" size="18"></i>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="difficulty-section" data-difficulty="mahir">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p
+                class="text-xs font-bold uppercase tracking-[0.2em] text-violet-500"
+              >
+                Level 3
+              </p>
+              <h3 class="text-3xl font-extrabold text-slate-900">Mahir</h3>
+            </div>
+            <span
+              class="rounded-full bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700"
+            >
+              Tantangan bahasa yang lebih kompleks dan detail
+            </span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div
+              class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+            >
+              <div
+                class="w-full h-48 rounded-[2rem] bg-gradient-to-r from-violet-500 via-pink-500 to-rose-500 mb-6 flex items-center justify-center text-white relative overflow-hidden"
+              >
+                <div
+                  class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
+                ></div>
+                <i data-lucide="album" size="56" class="relative z-10"></i>
+              </div>
+              <div class="px-2 flex-grow">
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-fuchsia-500 mb-2 block"
+                  >Adjective</span
+                >
+                <h3 class="text-2xl font-bold mb-3">
+                  Adjective Snake & Ladder
+                </h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Bermain ular tangga sambil belajar kata sifat
+                </p>
+              </div>
+              <a
+                href="ular-tangga-adjective.html"
+                target="_blank"
+                class="w-full bg-fuchsia-500 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
+              >
+                Mulai Bermain <i data-lucide="step-forward" size="18"></i>
+              </a>
+            </div>
+
+            <div
+              class="game-card bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-sm transition-all duration-300 flex flex-col"
+            >
+              <div
+                class="w-full h-48 rounded-[2rem] bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 mb-6 flex items-center justify-center text-white relative overflow-hidden"
+              >
+                <div
+                  class="absolute inset-0 opacity-10 flex items-center justify-center rotate-12"
+                ></div>
+                <i
+                  data-lucide="folder-archive"
+                  size="56"
+                  class="relative z-10"
+                ></i>
+              </div>
+              <div class="px-2 flex-grow">
+                <span
+                  class="text-xs font-bold uppercase tracking-widest text-orange-600 mb-2 block"
+                  >Adjective Categories</span
+                >
+                <h3 class="text-2xl font-bold mb-3">
+                  Word Sort — Adjective Categories
+                </h3>
+                <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Susun kata ke dalam kelompok kategori adjective yang tepat.
+                </p>
+              </div>
+              <a
+                href="word_sort_game_adjective_categories.html"
+                target="_blank"
+                class="w-full bg-orange-500 text-white text-center py-4 rounded-2xl font-bold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
+              >
+                Main Sekarang <i data-lucide="play-circle" size="18"></i>
+              </a>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
 
@@ -352,6 +482,28 @@
     <!-- Inisialisasi Ikon -->
     <script>
       lucide.createIcons();
+
+      const filterButtons = document.querySelectorAll(".filter-btn");
+      const difficultySections = document.querySelectorAll(
+        ".difficulty-section",
+      );
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const selectedFilter = button.dataset.filter;
+
+          filterButtons.forEach((btn) => {
+            btn.classList.toggle("active", btn === button);
+          });
+
+          difficultySections.forEach((section) => {
+            const sectionDifficulty = section.dataset.difficulty;
+            const shouldShow =
+              selectedFilter === "all" || sectionDifficulty === selectedFilter;
+            section.classList.toggle("hidden", !shouldShow);
+          });
+        });
+      });
     </script>
   </body>
 </html>
