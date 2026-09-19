@@ -303,6 +303,7 @@
       </div>
     </div>
 
+    <script src="progress.js"></script>
     <script>
       // Database 50 Kalimat
       const sentencePool = [
@@ -570,6 +571,7 @@
 
       function showWin(winner) {
         state.gameActive = false;
+        window.recordGameCompletion("sentence-scramble-race", "sentence");
         clearInterval(state.timerInterval);
         const modal = document.getElementById("modal");
         const winnerText = document.getElementById("modalWinner");

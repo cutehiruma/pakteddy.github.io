@@ -313,6 +313,7 @@
       </button>
     </div>
 
+    <script src="progress.js"></script>
     <script>
       const verbs = {
         regular: [
@@ -580,6 +581,7 @@
                 : "HASIL SERI!";
           msg.innerText = `${result}\n\nSkor Akhir:\nAlpha: ${scores.ALPHA} | Beta: ${scores.BETA}`;
           btn.innerText = "MAIN LAGI";
+          window.recordGameCompletion("galactic-verb-relay", "grammar");
         }
       }
 

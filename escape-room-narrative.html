@@ -1103,6 +1103,7 @@
         </div>
       </div>
     </div>
+    <script src="progress.js"></script>
     <script>
       // ==================== GAME STATE ====================
       let gameState = {
@@ -1698,6 +1699,7 @@
       }
 
       function displayFinalScore() {
+        window.recordGameCompletion("escape-room-narrative", "story");
         const scoreDisplay = document.getElementById("score-display");
         const maxScore = 8; // 2 + 1 + 3 + 2
         const percentage = Math.round((gameState.score / maxScore) * 100);

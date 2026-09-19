@@ -231,6 +231,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<script src="progress.js"></script>
 <script>
 const SNAKES  = {16:6,47:26,49:11,56:53,62:19,64:60,87:24,93:73,95:75,99:78};
 const LADDERS = {4:14,9:31,20:38,28:84,40:59,51:67,63:81,71:91};
@@ -544,6 +545,7 @@ function endTurn() {
 /* ── WIN ── */
 function showWin() {
   gameOn = false;
+  window.recordGameCompletion("snake-ladder-adjectives", "vocabulary");
   closeQ();
   const sorted = [...players].sort((a,b)=>b.score-a.score);
   document.getElementById('win-title').textContent = `${sorted[0].name} wins!`;

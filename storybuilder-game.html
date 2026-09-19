@@ -364,6 +364,7 @@
       </section>
     </div>
 
+    <script src="progress.js"></script>
     <script>
       // Story Database
       const stories = [
@@ -522,6 +523,9 @@
           .querySelectorAll(".screen")
           .forEach((s) => s.classList.remove("active"));
         document.getElementById(id).classList.add("active");
+        if (id === "screen-final") {
+          window.recordGameCompletion("story-builder", "story");
+        }
 
         if (id.includes("room")) {
           currentRoom = parseInt(id.replace("screen-room", ""));

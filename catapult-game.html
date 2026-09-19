@@ -218,6 +218,7 @@
       <canvas id="gameCanvas"></canvas>
     </div>
 
+    <script src="progress.js"></script>
     <script>
       const canvas = document.getElementById("gameCanvas");
       const ctx = canvas.getContext("2d");
@@ -600,6 +601,7 @@
 
       function endGame(winner) {
         gameActive = false;
+        window.recordGameCompletion("siege-master", "vocabulary");
         document.getElementById("win-overlay").classList.remove("hidden");
         document.getElementById("win-title").innerText =
           "PENGLIMA " + winner + " MENANG!";

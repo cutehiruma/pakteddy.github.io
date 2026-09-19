@@ -313,6 +313,7 @@ button#reset-btn:hover { background: var(--surface-0); }
   </div>
 </div>
 
+<script src="progress.js"></script>
 <script>
 const WORDS = [
   { w: 'tall', t: 'tinggi', cat: 'FISIK' },
@@ -544,6 +545,9 @@ function dropWordInCategory(wordObj, cat) {
 
 function showResult(win, reason) {
   gameOver = true;
+  if (win) {
+    window.recordGameCompletion("word-sort-adjectives", "vocabulary");
+  }
   const overlay = document.getElementById('result-overlay');
   const emoji = document.getElementById('result-emoji');
   const title = document.getElementById('result-title');
