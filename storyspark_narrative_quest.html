@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Narrative Text Adventure Quest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap");
+      body {
+        font-family: "Fredoka", sans-serif;
+        background-color: #0f172a;
+        color: white;
+        user-select: none;
+      }
+      .game-container {
+        max-width: 480px;
+        margin: 0 auto;
+        height: 100vh;
+        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .hidden-screen {
+        display: none !important;
+      }
+      .animate-bounce-short {
+        animation: bounce-short 0.5s ease-in-out 1;
+      }
+      @keyframes bounce-short {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container shadow-2xl">
+      <!-- SCREEN 1: LOGIN / HOME -->
+      <div
+        id="screen-home"
+        class="flex flex-col items-center justify-center h-full p-6 text-center"
+      >
+        <i class="fas fa-book-magic text-6xl text-purple-400 mb-4"></i>
+        <h1
+          class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-2"
+        >
+          Narrative Quest
+        </h1>
+        <p class="text-slate-300 mb-8 text-sm">
+          Conquer the narrative challenges and become the Story Master!
+        </p>
+
+        <div
+          class="w-full max-w-xs bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg"
+        >
+          <label class="block text-left text-sm font-semibold mb-2"
+            >Enter your Hero Name:</label
+          >
+          <input
+            type="text"
+            id="player-name"
+            class="w-full p-3 rounded-xl bg-slate-900 border border-slate-600 focus:outline-none focus:border-purple-500 text-white mb-4"
+            placeholder="e.g., Alex"
+          />
+          <button
+            onclick="startGame()"
+            class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all"
+          >
+            Start Adventure <i class="fas fa-play ml-2"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: GAMEPLAY -->
+      <div id="screen-game" class="hidden-screen flex flex-col h-full">
+        <!-- Header -->
+        <div
+          class="bg-slate-800 p-4 shadow-md flex justify-between items-center border-b border-slate-700"
+        >
+          <div>
+            <div id="ui-player" class="font-semibold text-purple-300 text-sm">
+              Player
+            </div>
+            <div id="ui-mission-title" class="font-bold text-lg">Mission 1</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-400">Score</div>
+            <div id="ui-score" class="font-bold text-xl text-yellow-400">0</div>
+          </div>
+        </div>
+
+        <!-- Question Container -->
+        <div class="flex-1 p-5 overflow-y-auto" id="question-container">
+          <!-- Konten dinamis di-render oleh JavaScript -->
+        </div>
+      </div>
+
+      <!-- SCREEN 3: MISSION RESULT -->
+      <div
+        id="screen-mission-result"
+        class="hidden-screen flex flex-col items-center justify-center h-full p-6 text-center z-50 bg-slate-900 absolute inset-0"
+      >
+        <i
+          id="result-icon"
+          class="fas fa-trophy text-7xl text-yellow-400 mb-4 animate-bounce-short"
+        ></i>
+        <h2 id="result-title" class="text-3xl font-bold mb-2">
+          Mission Complete!
+        </h2>
+        <p class="text-slate-300 mb-6">Your Score:</p>
+        <div
+          id="result-score"
+          class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-8"
+        >
+          100
+        </div>
+
+        <div
+          id="result-feedback"
+          class="text-sm mb-8 text-slate-300 bg-slate-800 p-4 rounded-xl"
+        ></div>
+
+        <button
+          id="btn-next-mission"
+          onclick="nextMission()"
+          class="w-full max-w-xs bg-green-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:bg-green-600 active:scale-95 transition-all mb-3 hidden"
+        >
+          Next Mission <i class="fas fa-arrow-right ml-2"></i>
+        </button>
+        <button
+          id="btn-retry-mission"
+          onclick="retryMission()"
+          class="w-full max-w-xs bg-red-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:bg-red-600 active:scale-95 transition-all mb-3 hidden"
+        >
+          Try Again <i class="fas fa-redo ml-2"></i>
+        </button>
+      </div>
+
+      <!-- SCREEN 4: FINAL RESULT -->
+      <div
+        id="screen-final"
+        class="hidden-screen flex flex-col items-center justify-center h-full p-6 text-center bg-slate-900 absolute inset-0"
+      >
+        <i class="fas fa-crown text-8xl text-yellow-400 mb-6"></i>
+        <h1 class="text-4xl font-bold text-white mb-2">Awesome Job!</h1>
+        <p class="text-slate-300 mb-6 text-lg">
+          You have successfully completed all missions.
+        </p>
+
+        <div
+          class="bg-slate-800 p-6 rounded-2xl w-full max-w-xs mb-8 border border-slate-700"
+        >
+          <p class="text-sm text-slate-400 uppercase tracking-wider mb-1">
+            Total Final Score
+          </p>
+          <div
+            id="final-total-score"
+            class="text-5xl font-bold text-purple-400"
+          >
+            0
+          </div>
+        </div>
+
+        <button
+          onclick="restartGame()"
+          class="w-full max-w-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all"
+        >
+          Play Again from the Start <i class="fas fa-home ml-2"></i>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // --- DATABASE SOAL & MISI (Updated to English) ---
+      const missions = [
+        {
+          id: 1,
+          title: "🎯 M1: Vocab Explorer",
+          desc: "Choose the correct meaning of the word based on narrative contexts.",
+          type: "mcq",
+          questions: [
+            {
+              q: "What is the synonym of the word 'Cursed' in the story of Malin Kundang?",
+              options: ["Blessed", "Doomed", "Remembered", "Punched"],
+              answer: 1,
+            },
+            {
+              q: "The prince has a 'Magical' sword. Magical means...",
+              options: ["Rusty", "Dull", "Enchanted", "Long"],
+              answer: 2,
+            },
+            {
+              q: "He went to the nearest 'Village'. A village is...",
+              options: [
+                "A big city",
+                "A dark forest",
+                "A small rural area",
+                "A beautiful beach",
+              ],
+              answer: 2,
+            },
+            {
+              q: "The giant was very 'Cruel'. What is the antonym (opposite) of Cruel?",
+              options: ["Kind", "Mean", "Tiny", "Weak"],
+              answer: 0,
+            },
+            {
+              q: "They lived happily 'Ever after'. Ever after means...",
+              options: [
+                "For a short time",
+                "Forever",
+                "Until tomorrow",
+                "Sometimes",
+              ],
+              answer: 1,
+            },
+          ],
+        },
+        {
+          id: 2,
+          title: "🚀 M2: Verb Sorting",
+          desc: "Select the correct PAST TENSE (V2) verb to complete the sentence.",
+          type: "mcq",
+          questions: [
+            {
+              q: "Long time ago, there ___ a beautiful princess in West Java.",
+              options: ["is", "was", "are", "were"],
+              answer: 1,
+            },
+            {
+              q: "Sangkuriang ___ the boat with all his strength.",
+              options: ["kicked", "kick", "kicking", "kicks"],
+              answer: 0,
+            },
+            {
+              q: "They ___ into the dark forest yesterday to find the magic flower.",
+              options: ["go", "went", "gone", "going"],
+              answer: 1,
+            },
+            {
+              q: "The wicked witch ___ Timun Mas to come out of the house.",
+              options: ["tell", "tells", "told", "telling"],
+              answer: 2,
+            },
+            {
+              q: "She ___ away as fast as she could to escape.",
+              options: ["run", "ran", "runs", "running"],
+              answer: 1,
+            },
+          ],
+        },
+        {
+          id: 3,
+          title: "🏎️ M3: Sentence Scramble Race",
+          desc: "Arrange these scrambled words into a correct English sentence!",
+          type: "scramble",
+          questions: [
+            {
+              words: ["lived", "an", "old", "woman", "there"],
+              answer: "there lived an old woman",
+            },
+            {
+              words: ["the", "kicked", "he", "boat", "hard"],
+              answer: "he kicked the boat hard",
+            },
+            {
+              words: ["golden", "gave", "cucumber", "a", "he"],
+              answer: "he gave a golden cucumber",
+            },
+            {
+              words: ["cursed", "into", "stone", "mother", "his", "him"],
+              answer: "his mother cursed him into stone",
+            },
+            {
+              words: ["ran", "away", "Timun Mas", "quickly"],
+              answer: "timun mas ran away quickly",
+            },
+          ],
+        },
+        {
+          id: 4,
+          title: "🏰 M4: Vocabulary Battle",
+          desc: "Defeat the challenge by choosing the most accurate word!",
+          type: "mcq",
+          questions: [
+            {
+              q: "What is the synonym of 'Handsome'?",
+              options: ["Ugly", "Good-looking", "Bad", "Angry"],
+              answer: 1,
+            },
+            {
+              q: "What is the antonym of 'Brave'?",
+              options: ["Cowardly", "Strong", "Smart", "Tall"],
+              answer: 0,
+            },
+            {
+              q: "What is the correct pronoun for a king?",
+              options: ["She", "It", "They", "He"],
+              answer: 3,
+            },
+            {
+              q: "'Suddenly, the giant woke up.' The word 'Suddenly' means...",
+              options: ["Slowly", "Unexpectedly", "Finally", "Always"],
+              answer: 1,
+            },
+            {
+              q: "'Wisdom' in a fairy tale usually refers to...",
+              options: [
+                "Stupidity",
+                "Physical strength",
+                "Good judgment",
+                "Wealth",
+              ],
+              answer: 2,
+            },
+          ],
+        },
+        {
+          id: 5,
+          title: "📖 M5: Story Challenge",
+          desc: "Read the short text carefully and answer the questions.",
+          type: "reading",
+          story:
+            "One day, a thirsty ant went to the river. Suddenly, a strong wave swept him away. A dove saw him and dropped a leaf. The ant climbed on the leaf and was saved.",
+          questions: [
+            {
+              q: "Who was swept away by the river?",
+              options: ["The dove", "The ant", "The leaf", "The wave"],
+              answer: 1,
+            },
+            {
+              q: "What did the dove drop to help?",
+              options: ["A branch", "A fruit", "A leaf", "A stone"],
+              answer: 2,
+            },
+            {
+              q: "How did the ant survive?",
+              options: [
+                "He swam fast",
+                "He drank the water",
+                "He climbed the leaf",
+                "He flew away",
+              ],
+              answer: 2,
+            },
+            {
+              q: "Which adjective describes the wave in the story?",
+              options: ["Thirsty", "Saved", "Strong", "Dropped"],
+              answer: 2,
+            },
+            {
+              q: "What is the moral value of the text?",
+              options: [
+                "Be lazy",
+                "Help each other",
+                "Don't drink water",
+                "Climb tall trees",
+              ],
+              answer: 1,
+            },
+          ],
+        },
+        {
+          id: 6,
+          title: "📖 M6: Story Builder",
+          desc: "Complete this narrative text by choosing the correct words!",
+          type: "fill-blank",
+          story_template:
+            "Long time ago, a young boy named Malin [1] to sea. He became rich but [2] his mother. His mother was sad and [3] him into a stone. He [4] forever.",
+          questions: [
+            { id: "[1]", options: ["went", "go", "gone", "going"], answer: 0 },
+            {
+              id: "[2]",
+              options: ["remember", "forgot", "loved", "hugged"],
+              answer: 1,
+            },
+            {
+              id: "[3]",
+              options: ["cursed", "hugged", "kissed", "smiled"],
+              answer: 0,
+            },
+            {
+              id: "[4]",
+              options: ["cries", "regretted", "smile", "laugh"],
+              answer: 1,
+            },
+            {
+              id: "(Bonus) What is the genre of this story?",
+              options: ["Fable", "Myth", "Legend", "Fairy Tale"],
+              answer: 2,
+            },
+          ],
+        },
+      ];
+
+      // --- GAME STATE ---
+      let player = { name: "", currentMissionIdx: 0, totalScore: 0 };
+      let currentQIdx = 0;
+      let missionScore = 0;
+      let scrambleSelectedWords = [];
+
+      // --- LOGIC ---
+      function switchScreen(screenId) {
+        document
+          .querySelectorAll(".game-container > div")
+          .forEach((el) => el.classList.add("hidden-screen"));
+        document.getElementById(screenId).classList.remove("hidden-screen");
+      }
+
+      function startGame() {
+        const nameInput = document.getElementById("player-name").value.trim();
+        if (!nameInput) {
+          alert("Tolong masukkan namamu dulu ya!");
+          return;
+        }
+
+        player.name = nameInput;
+        player.currentMissionIdx = 0;
+        player.totalScore = 0;
+
+        document.getElementById("ui-player").innerText = player.name;
+        startMission();
+      }
+
+      function startMission() {
+        currentQIdx = 0;
+        missionScore = 0;
+        const mission = missions[player.currentMissionIdx];
+
+        document.getElementById("ui-mission-title").innerText = mission.title;
+        updateScoreUI();
+        switchScreen("screen-game");
+        renderQuestion();
+      }
+
+      function updateScoreUI() {
+        document.getElementById("ui-score").innerText = missionScore;
+      }
+
+      function renderQuestion() {
+        const mission = missions[player.currentMissionIdx];
+        const qContainer = document.getElementById("question-container");
+        qContainer.innerHTML = "";
+
+        if (currentQIdx >= mission.questions.length) {
+          showMissionResult();
+          return;
+        }
+
+        const qData = mission.questions[currentQIdx];
+        const progressText = `Question ${currentQIdx + 1} of ${mission.questions.length}`;
+
+        let html = `
+            <div class="mb-4 text-xs font-bold text-slate-400 uppercase tracking-widest">${progressText}</div>
+            <div class="mb-6 p-4 bg-slate-800 rounded-xl border border-slate-700 shadow-sm">
+                <p class="text-sm text-purple-300 mb-2">${mission.desc}</p>
+        `;
+
+        if (mission.type === "reading") {
+          html += `<div class="p-3 bg-slate-900 rounded-lg text-sm mb-4 italic text-slate-300 border-l-4 border-purple-500">"${mission.story}"</div>`;
+        }
+        if (mission.type === "fill-blank") {
+          html += `<div class="p-3 bg-slate-900 rounded-lg text-sm mb-4 leading-relaxed text-slate-200 border-l-4 border-purple-500">${mission.story_template}</div>`;
+        }
+
+        if (
+          mission.type === "mcq" ||
+          mission.type === "reading" ||
+          mission.type === "fill-blank"
+        ) {
+          html += `<h2 class="text-lg font-bold leading-snug">${qData.q || `Fill in the blank ${qData.id}`}</h2></div><div class="space-y-3">`;
+          qData.options.forEach((opt, idx) => {
+            html += `<button onclick="checkAnswer(${idx})" class="w-full text-left p-4 bg-slate-700 hover:bg-purple-600 rounded-xl font-medium transition-colors active:scale-95 shadow-sm">${opt}</button>`;
+          });
+          html += `</div>`;
+          qContainer.innerHTML = html;
+        } else if (mission.type === "scramble") {
+          html += `<h2 class="text-lg font-bold leading-snug">Arrange the words:</h2></div>`;
+          html += `<div id="scramble-answer-area" class="min-h-[60px] p-3 mb-4 bg-slate-900 rounded-xl border-2 border-dashed border-slate-600 flex flex-wrap gap-2 items-center justify-center cursor-pointer" onclick="resetScramble()"></div>`;
+
+          let shuffled = [...qData.words].sort(() => Math.random() - 0.5);
+          html += `<div id="scramble-words" class="flex flex-wrap gap-2 justify-center mb-6">`;
+          shuffled.forEach((word) => {
+            html += `<button onclick="selectWord(this, '${word}')" class="px-4 py-2 bg-purple-600 rounded-lg font-bold shadow active:scale-95 transition-transform">${word}</button>`;
+          });
+          html += `</div>`;
+          html += `<button onclick="checkScramble()" class="w-full py-3 bg-green-500 rounded-xl font-bold hover:bg-green-600">Check Answer</button>`;
+          qContainer.innerHTML = html;
+          scrambleSelectedWords = [];
+        }
+      }
+
+      function checkAnswer(selectedIdx) {
+        const mission = missions[player.currentMissionIdx];
+        const qData = mission.questions[currentQIdx];
+        const pointsPerQuestion = 100 / mission.questions.length;
+
+        if (selectedIdx === qData.answer) {
+          missionScore += pointsPerQuestion;
+          showFeedback(true, "Correct!");
+        } else {
+          showFeedback(false, "Incorrect, focus!");
+        }
+
+        updateScoreUI();
+        currentQIdx++;
+        setTimeout(renderQuestion, 1200);
+      }
+
+      function selectWord(btnElement, word) {
+        btnElement.classList.add("hidden");
+        scrambleSelectedWords.push({ el: btnElement, text: word });
+        renderScrambleAnswerArea();
+      }
+
+      function renderScrambleAnswerArea() {
+        const area = document.getElementById("scramble-answer-area");
+        area.innerHTML = scrambleSelectedWords
+          .map(
+            (w) =>
+              `<span class="px-3 py-1 bg-blue-500 rounded-lg text-sm shadow">${w.text}</span>`,
+          )
+          .join(" ");
+      }
+
+      function resetScramble() {
+        scrambleSelectedWords.forEach((w) => w.el.classList.remove("hidden"));
+        scrambleSelectedWords = [];
+        renderScrambleAnswerArea();
+      }
+
+      function checkScramble() {
+        const mission = missions[player.currentMissionIdx];
+        const qData = mission.questions[currentQIdx];
+        const pointsPerQuestion = 100 / mission.questions.length;
+
+        let userAnswer = scrambleSelectedWords
+          .map((w) => w.text)
+          .join(" ")
+          .toLowerCase();
+
+        if (userAnswer === qData.answer.toLowerCase()) {
+          missionScore += pointsPerQuestion;
+          showFeedback(true, "Perfect Sentence!");
+          updateScoreUI();
+          currentQIdx++;
+          setTimeout(renderQuestion, 1200);
+        } else {
+          showFeedback(
+            false,
+            "Not quite right. Click your answer to reset and try again.",
+          );
+        }
+      }
+
+      function showFeedback(isCorrect, message) {
+        const color = isCorrect ? "text-green-400" : "text-red-400";
+        const icon = isCorrect ? "fa-check-circle" : "fa-times-circle";
+
+        const feedbackDiv = document.createElement("div");
+        feedbackDiv.className = `absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-800 p-6 rounded-2xl border ${isCorrect ? "border-green-500" : "border-red-500"} shadow-2xl flex flex-col items-center z-10 text-center animate-bounce-short min-w-[250px]`;
+        feedbackDiv.innerHTML = `
+            <i class="fas ${icon} ${color} text-5xl mb-3"></i>
+            <p class="font-bold text-lg text-white">${message}</p>
+        `;
+
+        document.getElementById("screen-game").appendChild(feedbackDiv);
+        setTimeout(() => {
+          feedbackDiv.remove();
+        }, 1100);
+      }
+
+      function showMissionResult() {
+        switchScreen("screen-mission-result");
+        missionScore = Math.round(missionScore);
+        document.getElementById("result-score").innerText = missionScore;
+
+        const titleText = document.getElementById("result-title");
+        const iconEl = document.getElementById("result-icon");
+        const feedbackText = document.getElementById("result-feedback");
+        const btnNext = document.getElementById("btn-next-mission");
+        const btnRetry = document.getElementById("btn-retry-mission");
+
+        btnNext.classList.add("hidden");
+        btnRetry.classList.add("hidden");
+
+        if (missionScore > 80) {
+          titleText.innerText = "Misi Berhasil!";
+          titleText.className = "text-3xl font-bold mb-2 text-green-400";
+          iconEl.className =
+            "fas fa-star text-7xl text-yellow-400 mb-4 animate-bounce-short";
+          feedbackText.innerHTML =
+            "Luar biasa! Pemahaman bahasa Inggrismu tentang Narrative Text sangat baik. Kamu layak melanjutkan perjalanan.";
+          btnNext.classList.remove("hidden");
+          player.totalScore += missionScore;
+        } else {
+          titleText.innerText = "Misi Gagal";
+          titleText.className = "text-3xl font-bold mb-2 text-red-400";
+          iconEl.className =
+            "fas fa-skull text-7xl text-slate-500 mb-4 animate-bounce-short";
+          feedbackText.innerHTML =
+            "Skor kamu belum mencapai batas minimal (>80). Jangan menyerah, ayo coba lagi!";
+          btnRetry.classList.remove("hidden");
+        }
+      }
+
+      function retryMission() {
+        startMission();
+      }
+
+      function nextMission() {
+        player.currentMissionIdx++;
+        if (player.currentMissionIdx < missions.length) {
+          startMission();
+        } else {
+          showFinalResult();
+        }
+      }
+
+      function showFinalResult() {
+        switchScreen("screen-final");
+        document.getElementById("final-total-score").innerText =
+          player.totalScore;
+      }
+
+      function restartGame() {
+        switchScreen("screen-home");
+        document.getElementById("player-name").value = "";
+      }
+    </script>
+  </body>
+</html>
